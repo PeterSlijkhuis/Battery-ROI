@@ -145,12 +145,15 @@ All fields explained:
 | Prices | Electricity price (import) | ✅ | EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… |
 | | Extra cost per kWh, excl. VAT | | **Only for raw market prices** (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh |
 | | VAT % | | **Only for raw market prices**: 21 in the Netherlands |
-| | Feed-in price | | What you get per exported kWh |
+| | Feed-in price sensor | | What you get per exported kWh, from a sensor |
+| | Fixed feed-in price | | Same, as a fixed amount (0 if you get nothing). Use one of the two |
+| | Net metering until | | The day net metering ends for you. Before it the feed-in price is ignored, after it it counts Optional; leave empty if you have no net metering |
 | Grid and solar | Grid power | | Smart meter or energy monitor, + import / − export |
 | | Solar production | | Shown on the card |
 | Battery costs | Standby power | | Watts the battery uses itself that its power sensors miss |
 | | Wear cost per kWh discharged | | Purchase price ÷ (capacity in kWh × rated cycles) |
 | | Purchase cost | | What the battery cost you; adds a payback sensor |
+| | Battery installed on | | Fills in the totals from Home Assistant's history from this day on, see [Start from your install date](#start-from-your-install-date) |
 
 > **Tibber, Frank Energie, Zonneplan** sensors already include tax and VAT: leave *Extra cost* and *VAT* empty.
 
@@ -167,7 +170,7 @@ Prefer YAML? Add a **Manual** card with:
 type: custom:battery-roi-card
 ```
 
-The numbers start at €0 from the moment you finish step 4. Read the next section before you judge them.
+The numbers start at €0 from the moment you finish step 4, unless you filled in *Battery installed on*. Read the next section before you judge them.
 
 ## Your first day: why the numbers look odd
 
@@ -215,11 +218,28 @@ Tap a tile or the ticker to see its history graph.
 | I want to… | Where |
 | --- | --- |
 | Change which sensors are used | **Settings → Devices & services → Battery ROI → Configure** (your totals are kept) |
+| Fill in history from the day you got the battery | **Configure** → *Battery costs* → **Battery installed on**, see below |
 | Start the totals from zero | **Settings → Devices & services → Battery ROI → device → Reset totals → Press** |
 | See all Battery ROI numbers | **Settings → Devices & services → Battery ROI → device** |
 | See a number's history | Tap it on the card |
 | Change what the card shows | Edit the dashboard → click the card → **Edit** |
 | Update to a new version | **Settings** lists an update for **Battery ROI** at the top → click it → **Install**, then restart (step 3). The card then shows an orange *Battery ROI was updated* bar: tap it once to load the new card |
+
+### Start from your install date
+
+Had the battery before you installed Battery ROI? Fill in **Battery installed on** (in setup, or later via **Configure** → *Battery costs*). Battery ROI then replays Home Assistant's own history from that day and fills in Today, This month, Lifetime, energy and payback. A notification tells you when it's done and from which day it found data.
+
+How far back it can go depends on what Home Assistant kept:
+
+| Period | What Battery ROI uses | Accuracy |
+| --- | --- | --- |
+| Last ~10 days (the recorder's default) | Every recorded sensor change | Same as live tracking |
+| Older | Hourly averages from long-term statistics | Close, but prices and power inside an hour are averaged |
+| Before your sensors existed in Home Assistant | Nothing | Not counted |
+
+- Long-term statistics only exist for sensors with a *state class*. Most battery power sensors have one; some price sensors don't, and hours without a price are skipped.
+- Hours when Home Assistant was off are skipped rather than guessed.
+- The replay **replaces** the current totals. It runs once per date; change the date to run it again.
 
 **Numbers look wrong?**
 
@@ -285,7 +305,7 @@ flowchart LR
 ```
 
 - **Price sensor only.** `profit per hour = (discharge kW − charge kW) × price`. The same price is used in both directions, which is right under net metering (*salderingsregeling*).
-- **Plus feed-in price and grid power.** Each kWh is valued at the price it actually displaced:
+- **Plus feed-in price and grid power.** Battery ROI can tell solar charging from grid charging. Each kWh is valued at the price it actually displaced:
 
 | Battery is… | While the house is… | Valued at |
 | --- | --- | --- |
@@ -294,9 +314,15 @@ flowchart LR
 | charging | exporting solar surplus | feed-in price (gave up selling) |
 | charging | importing | import price (bought) |
 
+**Is solar charging free?** Only if you'd get nothing for exporting it. Storing a solar kWh means not selling it, so it costs whatever you'd have been paid:
+
+- **Net metering (saldering):** an exported kWh cancels a bought one, so a stored solar kWh is worth the full price. Leave the feed-in fields empty, or fill them in now together with the *Net metering until* date so the switch happens by itself.
+- **No net metering:** set a feed-in price (sensor or fixed) plus grid power. Solar charging then costs that feed-in price, often a few cents, and grid charging costs the full import price.
+- **You get nothing for export:** set the fixed feed-in price to 0 and solar charging is free.
+
 Included: round-trip losses, because you charge more kWh than you get back. Optional: the battery's own standby draw, and wear per kWh discharged (counted once, not on both charge and discharge).
 
-> **Tip for the Netherlands:** net metering ends on 1 January 2027. From then on a stored solar kWh is worth the feed-in price, not the import price, so add a feed-in price and your grid meter to keep the numbers honest.
+> **Tip for the Netherlands:** net metering ends on 1 January 2027. From then on a stored solar kWh is worth the feed-in price, not the import price, Enter your feed-in price, grid meter and *Net metering until* = 1 January 2027 once, and the numbers switch over on their own.
 
 > **Tip for raw EPEX prices:** they exclude energy tax, supplier fee and VAT. Fill in *Extra cost per kWh* and *VAT*: the import price becomes (market price + extra cost) × (1 + VAT).
 
@@ -318,7 +344,7 @@ State of charge moves in whole percents and hides charging losses, so a 5 kWh ba
 <details>
 <summary><b>The numbers start at zero. Can I import history?</b></summary>
 
-Not yet. Tracking starts when you set up the integration.
+Yes, see [Start from your install date](#start-from-your-install-date).
 </details>
 
 <details>

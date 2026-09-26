@@ -17,8 +17,11 @@ from .const import (
     CONF_BATTERY_COST,
     CONF_CHARGE_POWER,
     CONF_DISCHARGE_POWER,
+    CONF_FEED_IN_FIXED,
     CONF_FEED_IN_PRICE,
     CONF_GRID_POWER,
+    CONF_INSTALL_DATE,
+    CONF_NET_METERING_UNTIL,
     CONF_POSITIVE_MEANS,
     CONF_PRICE,
     CONF_PRICE_SURCHARGE,
@@ -67,6 +70,8 @@ SECTIONS: dict[str, tuple[bool, dict]] = {
         vol.Optional(CONF_PRICE_SURCHARGE): _number(maximum=1),
         vol.Optional(CONF_VAT): _number("%", 0.1, 100),
         vol.Optional(CONF_FEED_IN_PRICE): _SENSOR,
+        vol.Optional(CONF_FEED_IN_FIXED): _number(maximum=1),
+        vol.Optional(CONF_NET_METERING_UNTIL): selector.DateSelector(),
     }),
     "grid": (True, {
         vol.Optional(CONF_GRID_POWER): _POWER,
@@ -76,6 +81,7 @@ SECTIONS: dict[str, tuple[bool, dict]] = {
         vol.Optional(CONF_STANDBY_POWER): _number("W", 1, 1000),
         vol.Optional(CONF_WEAR_COST): _number(maximum=1),
         vol.Optional(CONF_BATTERY_COST): _number(step=1),
+        vol.Optional(CONF_INSTALL_DATE): selector.DateSelector(),
     }),
 }
 
