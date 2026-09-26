@@ -3,6 +3,9 @@
 // so the card also works without internet.
 import { LitElement, html, css, nothing } from "./lit.js";
 
+// Must match VERSION in const.py (a test checks this).
+const CARD_VERSION = "0.3.0";
+
 const DEFAULTS = {
   title: "Battery ROI",
   daily: "sensor.battery_roi_profit_today",
@@ -24,12 +27,14 @@ const TEXT = {
     earning: "Earning", spending: "Spending", idle: "Idle",
     pace: "Pace", perMonth: "/month", payback: "Payback", years: "y", efficiency: "Efficiency",
     missing: "Battery ROI isn't set up yet. Add it under Settings → Devices & services.",
+    updated: "Battery ROI was updated. Tap here to load the new card.",
   },
   nl: {
     today: "Vandaag", yesterday: "Gisteren", month: "Deze maand", lastMonth: "Vorige maand", total: "Totaal", since: "Sinds",
     earning: "Verdient", spending: "Kost", idle: "Rust",
     pace: "Tempo", perMonth: "/maand", payback: "Terugverdiend in", years: "jaar", efficiency: "Rendement",
     missing: "Battery ROI is nog niet ingesteld. Voeg het toe via Instellingen → Apparaten & diensten.",
+    updated: "Battery ROI is bijgewerkt. Tik hier om de nieuwe kaart te laden.",
   },
 };
 
@@ -193,8 +198,13 @@ class BatteryRoiCard extends LitElement {
     const rateText =
       rateTrend === "flat" ? t.idle : rateTrend === "up" ? t.earning : t.spending;
 
+    const stale = rateAttrs.version && rateAttrs.version !== CARD_VERSION;
+
     return html`
       <ha-card .header=${c.title}>
+        ${stale
+          ? html`<button class="updated" @click=${() => location.reload()}>${t.updated}</button>`
+          : nothing}
         <div class="tiles">
           ${this._tile(t.today, c.daily, t.yesterday)}
           ${this._tile(t.month, c.monthly, t.lastMonth)}
@@ -222,6 +232,19 @@ class BatteryRoiCard extends LitElement {
   }
 
   static styles = css`
+    .updated {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 0 16px 12px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      background: var(--warning-color, #ffa600);
+      color: var(--text-primary-color, #fff);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
     .missing {
       padding: 0 16px 16px;
       color: var(--secondary-text-color);

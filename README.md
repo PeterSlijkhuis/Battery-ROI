@@ -219,7 +219,7 @@ Tap a tile or the ticker to see its history graph.
 | See all Battery ROI numbers | **Settings → Devices & services → Battery ROI → device** |
 | See a number's history | Tap it on the card |
 | Change what the card shows | Edit the dashboard → click the card → **Edit** |
-| Update to a new version | **Settings** lists an update for **Battery ROI** at the top → click it → **Install**, then restart (step 3) |
+| Update to a new version | **Settings** lists an update for **Battery ROI** at the top → click it → **Install**, then restart (step 3). The card then shows an orange *Battery ROI was updated* bar: tap it once to load the new card |
 
 **Numbers look wrong?**
 

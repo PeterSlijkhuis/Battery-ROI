@@ -8,7 +8,7 @@ from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.battery_roi.config_flow import _nest
-from custom_components.battery_roi.const import DOMAIN
+from custom_components.battery_roi.const import DOMAIN, VERSION
 
 async def _run(hass: HomeAssistant, freezer, duration: timedelta) -> None:
     """Let time pass in 30 s ticks, like a running Home Assistant."""
@@ -140,3 +140,11 @@ async def test_epex_surcharge_feed_in_and_p1(hass: HomeAssistant, freezer) -> No
         "button", "press", {"entity_id": "button.battery_roi_reset_totals"}, blocking=True
     )
     assert float(hass.states.get("sensor.battery_roi_profit_total").state) == 0
+
+
+def test_card_version_matches_integration():
+    """The card shows a reload hint when these differ, so they must ship in step."""
+    from pathlib import Path
+
+    card = Path(__file__).parents[1] / "custom_components/battery_roi/frontend/battery-roi-card.js"
+    assert f'const CARD_VERSION = "{VERSION}";' in card.read_text()

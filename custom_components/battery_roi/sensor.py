@@ -38,7 +38,8 @@ async def async_setup_entry(
         RoiSensor(
             hub, entry, "rate", "Rate",
             lambda: _round(hub.acc.rate(), 4),
-            lambda: hub.live,
+            # The card compares this with its own version to spot a stale browser copy.
+            lambda: {**hub.live, "version": VERSION},
             unit=f"{currency}/h", state_class=SensorStateClass.MEASUREMENT, icon="mdi:cash-sync",
             precision=2,
         ),
