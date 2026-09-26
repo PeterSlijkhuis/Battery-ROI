@@ -32,13 +32,14 @@ from .const import (
     CONF_SOC,
     CONF_SOLAR_POWER,
     CONF_STANDBY_POWER,
+    CONF_VAT,
     CONF_WEAR_COST,
     DOMAIN,
     POSITIVE_CHARGING,
     VERSION,
 )
 
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.BUTTON, Platform.SENSOR]
 TICK = timedelta(seconds=30)
 # Samples keep postponing a delayed save, so also save on a fixed beat
 # in case Home Assistant stops without a clean shutdown.
@@ -146,6 +147,12 @@ class BatteryRoiHub:
     def _on_tick(self, now) -> None:
         self._sample()
 
+    async def async_reset(self) -> None:
+        """Forget all totals; tracking starts again now."""
+        self.acc = Accumulator()
+        self._sample()
+        await self.store.async_save(self.acc.as_dict())
+
     async def _on_save(self, now) -> None:
         await self.store.async_save(self.acc.as_dict())
 
@@ -158,6 +165,7 @@ class BatteryRoiHub:
         price = self._read(CONF_PRICE, _per_kwh)
         if price is not None:
             price += self.config.get(CONF_PRICE_SURCHARGE) or 0
+            price *= 1 + (self.config.get(CONF_VAT) or 0) / 100
         feed_in = self._read(CONF_FEED_IN_PRICE, _per_kwh)
         grid = self._read(CONF_GRID_POWER, _kw)
 

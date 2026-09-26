@@ -9,7 +9,8 @@ A Home Assistant integration that multiplies every kWh your battery charges and 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5?logo=homeassistantcommunitystore&logoColor=white)](https://hacs.xyz/docs/faq/custom_repositories/)
 [![Home Assistant 2024.11+](https://img.shields.io/badge/Home%20Assistant-2024.11%2B-18BCF2?logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
 [![CI](https://github.com/PeterSlijkhuis/Battery-ROI/actions/workflows/ci.yml/badge.svg)](https://github.com/PeterSlijkhuis/Battery-ROI/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=PeterSlijkhuis&repository=Battery-ROI&category=integration)
 [![Open your Home Assistant instance and start setting up Battery ROI.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=battery_roi)
@@ -35,6 +36,8 @@ Standard energy dashboards show kWh. With dynamic prices (EPEX, Nordpool, Tibber
 - ☀️ **Solar aware**: with a feed-in price and a P1 meter, it knows whether a kWh replaced buying or selling
 - 📈 **Dashboard card included**: today, this month, yesterday, last month, live €/h, monthly pace, payback and efficiency
 - 🎨 **Matches your theme**: the card uses only Home Assistant theme variables, light and dark
+- 🇳🇱 **English and Dutch**: setup screen and card follow your Home Assistant language
+- ✏️ **Visual card editor**: no YAML needed on the dashboard either
 - 📴 **Works offline**: the card and its UI library ship inside the integration, no CDN
 
 ## Requirements
@@ -63,29 +66,32 @@ Copy `custom_components/battery_roi` into your `<config>/custom_components/` fol
 
 ## Setup
 
-Pick your sensors. Only battery power and price are required.
+Pick your sensors. Only battery power and price are required; the optional sections start folded.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/setup-dark.png">
   <img alt="Battery ROI setup screen" src="docs/setup-light.png" width="420">
 </picture>
 
-| Field | Required | Examples |
-| --- | :---: | --- |
-| Battery charge power | ✅ | EcoFlow input power, or one signed battery power sensor |
-| Battery discharge power | | EcoFlow output power. Leave empty when the field above is signed |
-| Positive power means | | Charging or discharging, for a signed sensor |
-| Electricity price (import) | ✅ | EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan |
-| Extra cost per kWh | | For raw market prices: energy tax + supplier fee + VAT, in EUR/kWh |
-| Feed-in price | | What you get per exported kWh |
-| Grid power (P1) | | HomeWizard P1 active power, + import / − export |
-| Solar production | | Shown on the card |
-| Battery state of charge | | Shown on the card |
-| Battery standby power | | W the battery uses itself that its power sensors miss (inverter, BMS) |
-| Wear cost per kWh discharged | | Degradation, e.g. price ÷ (capacity × rated cycles) |
-| Battery purchase cost | | Adds a payback sensor |
+| Section | Field | Required | Examples |
+| --- | --- | :---: | --- |
+| Battery | Charge power | ✅ | EcoFlow input power, or one signed battery power sensor |
+| | Discharge power | | EcoFlow output power. Leave empty when the field above is signed |
+| | Positive power means | | Charging or discharging, for a signed sensor |
+| | State of charge | | Shown on the card |
+| Prices | Electricity price (import) | ✅ | EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan |
+| | Extra cost per kWh, excl. VAT | | Raw market prices only: energy tax + supplier fee |
+| | VAT % | | Raw market prices only: 21 in the Netherlands |
+| | Feed-in price | | What you get per exported kWh. Often the same market price sensor |
+| Grid and solar | Grid power (P1) | | HomeWizard P1 active power, + import / − export |
+| | Solar production | | Shown on the card |
+| Battery costs | Standby power | | W the battery uses itself that its power sensors miss |
+| | Wear cost per kWh discharged | | Price ÷ (capacity × rated cycles) |
+| | Purchase cost | | Adds a payback sensor |
 
 To change sensors later: **Settings → Devices & services → Battery ROI → Configure**.
+
+**Got the sign wrong?** If profit drops while the battery is clearly earning, flip *Positive power means* (or check your P1 sensor's sign), then press **Reset totals** on the Battery ROI device to start the books again.
 
 ## The card
 
@@ -95,7 +101,7 @@ The integration loads the card for you. Add it to any dashboard:
 type: custom:battery-roi-card
 ```
 
-That's all. Every option is optional:
+That's all. Use the visual editor, or set any of these optional keys:
 
 | Option | Default |
 | --- | --- |
@@ -127,6 +133,7 @@ Tap a number to open its history. The **pace** line projects this month's profit
 | `sensor.battery_roi_energy_discharged` | kWh out of the battery |
 | `sensor.battery_roi_efficiency` | Discharged ÷ charged, shown after 1 kWh |
 | `sensor.battery_roi_payback` | Years until the battery has paid for itself at the average rate so far, shown after 7 days |
+| `button.battery_roi_reset_totals` | Start all totals from zero |
 
 Totals survive restarts. Gaps longer than 15 minutes (Home Assistant down, sensor offline) are skipped rather than guessed.
 
@@ -160,7 +167,7 @@ Included: round-trip losses, because you charge more kWh than you get back. Opti
 
 > **Tip for the Netherlands:** net metering ends on 1 January 2027. From then on a stored solar kWh is worth the feed-in price, not the import price, so add a feed-in price and your P1 meter to keep the numbers honest.
 
-> **Tip for raw EPEX prices:** they exclude energy tax and VAT, so fill in *Extra cost per kWh*. VAT is really a percentage, so a flat amount is an approximation.
+> **Tip for raw EPEX prices:** they exclude energy tax, supplier fee and VAT. Fill in *Extra cost per kWh* and *VAT*: the import price becomes (market price + extra cost) × (1 + VAT).
 
 ## FAQ
 
@@ -196,6 +203,10 @@ pytest
 ```
 
 CI runs Home Assistant's `hassfest` validation and the test suite on every pull request. The screenshots above come from a real Home Assistant 2026.2 with demo sensors.
+
+## License
+
+[MIT](LICENSE)
 
 ## Contributing
 

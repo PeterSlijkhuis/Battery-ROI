@@ -1,0 +1,166 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Battery ROI",
+        "description": "Kies sensoren uit je eigen installatie. Alleen batterijvermogen en prijs zijn verplicht; de ingeklapte onderdelen zijn optioneel.",
+        "data": {
+          "battery": "Batterij",
+          "prices": "Prijzen",
+          "grid": "Net en zonnepanelen (aanbevolen)",
+          "costs": "Batterijkosten"
+        },
+        "sections": {
+          "battery": {
+            "name": "Batterij",
+            "data": {
+              "charge_power": "Laadvermogen batterij",
+              "discharge_power": "Ontlaadvermogen batterij",
+              "positive_means": "Positief vermogen betekent",
+              "soc": "Laadtoestand batterij"
+            },
+            "data_description": {
+              "charge_power": "Vermogen de batterij in (W of kW). Heb je één sensor die positief en negatief kan zijn, kies die dan hier en laat ontladen leeg.",
+              "discharge_power": "Vermogen uit de batterij. Leeg laten als de sensor hierboven positief en negatief kan zijn.",
+              "positive_means": "Alleen bij één sensor met teken. Fout? Dan wordt de winst negatief terwijl de batterij verdient: draai dit om en druk op Totalen resetten.",
+              "soc": "Optioneel, wordt op de kaart getoond."
+            }
+          },
+          "prices": {
+            "name": "Prijzen",
+            "data": {
+              "price": "Stroomprijs (afname)",
+              "price_surcharge": "Extra kosten per kWh, exclusief btw",
+              "vat": "Btw",
+              "feed_in_price": "Terugleverprijs"
+            },
+            "data_description": {
+              "price": "Je dynamische tariefsensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh en EUR/MWh worden automatisch omgerekend.",
+              "price_surcharge": "Alleen voor kale marktprijzen (EPEX, Nordpool): energiebelasting + inkoopvergoeding in EUR/kWh. Leeg laten bij all-in prijzen zoals Tibber.",
+              "vat": "Alleen voor kale marktprijzen: over prijs + extra kosten. In Nederland 21. Leeg laten bij all-in prijzen.",
+              "feed_in_price": "Wat je per teruggeleverde kWh krijgt. Bij veel dynamische contracten is dat dezelfde marktprijssensor als hierboven. Werkt alleen samen met netvermogen."
+            }
+          },
+          "grid": {
+            "name": "Net en zonnepanelen (aanbevolen)",
+            "data": {
+              "grid_power": "Netvermogen (P1-meter)",
+              "solar_power": "Zonne-opwek"
+            },
+            "data_description": {
+              "grid_power": "HomeWizard P1 of een andere meter: positief bij afname, negatief bij teruglevering. Met een terugleverprijs weet de integratie of de batterij inkoop of verkoop verving.",
+              "solar_power": "Optioneel, wordt op de kaart getoond."
+            }
+          },
+          "costs": {
+            "name": "Batterijkosten",
+            "data": {
+              "standby_power": "Sluipverbruik batterij",
+              "wear_cost": "Slijtage per ontladen kWh",
+              "battery_cost": "Aanschafprijs batterij"
+            },
+            "data_description": {
+              "standby_power": "Wat de batterij zelf gebruikt (omvormer, BMS) en niet in de vermogenssensoren zit. Leeg laten als je laadsensor het al meetelt.",
+              "wear_cost": "Degradatie in EUR per geleverde kWh: aanschafprijs ÷ (capaciteit × aantal cycli). Eén keer per kWh geteld.",
+              "battery_cost": "Voegt een terugverdientijd-sensor toe."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "same_sensor": "Laad- en ontlaadvermogen moeten verschillende sensoren zijn."
+    },
+    "abort": {
+      "single_instance_allowed": "Battery ROI is al ingesteld. Gebruik Configureren om sensoren te wijzigen."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Battery ROI",
+        "description": "Wijzig de sensoren. Je opgebouwde totalen blijven bewaard.",
+        "data": {
+          "battery": "Batterij",
+          "prices": "Prijzen",
+          "grid": "Net en zonnepanelen (aanbevolen)",
+          "costs": "Batterijkosten"
+        },
+        "sections": {
+          "battery": {
+            "name": "Batterij",
+            "data": {
+              "charge_power": "Laadvermogen batterij",
+              "discharge_power": "Ontlaadvermogen batterij",
+              "positive_means": "Positief vermogen betekent",
+              "soc": "Laadtoestand batterij"
+            },
+            "data_description": {
+              "charge_power": "Vermogen de batterij in (W of kW). Heb je één sensor die positief en negatief kan zijn, kies die dan hier en laat ontladen leeg.",
+              "discharge_power": "Vermogen uit de batterij. Leeg laten als de sensor hierboven positief en negatief kan zijn.",
+              "positive_means": "Alleen bij één sensor met teken. Fout? Dan wordt de winst negatief terwijl de batterij verdient: draai dit om en druk op Totalen resetten.",
+              "soc": "Optioneel, wordt op de kaart getoond."
+            }
+          },
+          "prices": {
+            "name": "Prijzen",
+            "data": {
+              "price": "Stroomprijs (afname)",
+              "price_surcharge": "Extra kosten per kWh, exclusief btw",
+              "vat": "Btw",
+              "feed_in_price": "Terugleverprijs"
+            },
+            "data_description": {
+              "price": "Je dynamische tariefsensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh en EUR/MWh worden automatisch omgerekend.",
+              "price_surcharge": "Alleen voor kale marktprijzen (EPEX, Nordpool): energiebelasting + inkoopvergoeding in EUR/kWh. Leeg laten bij all-in prijzen zoals Tibber.",
+              "vat": "Alleen voor kale marktprijzen: over prijs + extra kosten. In Nederland 21. Leeg laten bij all-in prijzen.",
+              "feed_in_price": "Wat je per teruggeleverde kWh krijgt. Bij veel dynamische contracten is dat dezelfde marktprijssensor als hierboven. Werkt alleen samen met netvermogen."
+            }
+          },
+          "grid": {
+            "name": "Net en zonnepanelen (aanbevolen)",
+            "data": {
+              "grid_power": "Netvermogen (P1-meter)",
+              "solar_power": "Zonne-opwek"
+            },
+            "data_description": {
+              "grid_power": "HomeWizard P1 of een andere meter: positief bij afname, negatief bij teruglevering. Met een terugleverprijs weet de integratie of de batterij inkoop of verkoop verving.",
+              "solar_power": "Optioneel, wordt op de kaart getoond."
+            }
+          },
+          "costs": {
+            "name": "Batterijkosten",
+            "data": {
+              "standby_power": "Sluipverbruik batterij",
+              "wear_cost": "Slijtage per ontladen kWh",
+              "battery_cost": "Aanschafprijs batterij"
+            },
+            "data_description": {
+              "standby_power": "Wat de batterij zelf gebruikt (omvormer, BMS) en niet in de vermogenssensoren zit. Leeg laten als je laadsensor het al meetelt.",
+              "wear_cost": "Degradatie in EUR per geleverde kWh: aanschafprijs ÷ (capaciteit × aantal cycli). Eén keer per kWh geteld.",
+              "battery_cost": "Voegt een terugverdientijd-sensor toe."
+            }
+          }
+        }
+      }
+    },
+    "error": {
+      "same_sensor": "Laad- en ontlaadvermogen moeten verschillende sensoren zijn."
+    }
+  },
+  "selector": {
+    "positive_means": {
+      "options": {
+        "charging": "Laden",
+        "discharging": "Ontladen"
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "reset_totals": {
+        "name": "Totalen resetten"
+      }
+    }
+  }
+}
