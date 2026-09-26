@@ -13,6 +13,8 @@ CONF_GRID_POWER = "grid_power"
 CONF_SOLAR_POWER = "solar_power"
 CONF_SOC = "soc"
 CONF_BATTERY_COST = "battery_cost"
+CONF_STANDBY_POWER = "standby_power"
+CONF_WEAR_COST = "wear_cost"
 
 POSITIVE_CHARGING = "charging"
 POSITIVE_DISCHARGING = "discharging"

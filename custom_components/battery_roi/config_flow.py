@@ -21,6 +21,8 @@ from .const import (
     CONF_PRICE_SURCHARGE,
     CONF_SOC,
     CONF_SOLAR_POWER,
+    CONF_STANDBY_POWER,
+    CONF_WEAR_COST,
     DOMAIN,
     POSITIVE_CHARGING,
     POSITIVE_DISCHARGING,
@@ -51,6 +53,12 @@ SCHEMA = vol.Schema(
         vol.Optional(CONF_SOLAR_POWER): _POWER,
         vol.Optional(CONF_SOC): selector.EntitySelector(
             selector.EntitySelectorConfig(domain="sensor", device_class="battery")
+        ),
+        vol.Optional(CONF_STANDBY_POWER): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=1000, step=1, unit_of_measurement="W", mode=selector.NumberSelectorMode.BOX)
+        ),
+        vol.Optional(CONF_WEAR_COST): selector.NumberSelector(
+            selector.NumberSelectorConfig(min=0, max=1, step="any", mode=selector.NumberSelectorMode.BOX)
         ),
         vol.Optional(CONF_BATTERY_COST): selector.NumberSelector(
             selector.NumberSelectorConfig(min=0, step=1, mode=selector.NumberSelectorMode.BOX)

@@ -98,3 +98,18 @@ def test_feed_in_price_with_grid_meter(grid_kw, charge, discharge, expected):
 def test_same_price_both_ways_matches_simple_formula():
     for grid in (-3.0, -0.5, 0.0, 0.7, 4.0):
         assert Sample(0.0, 1.2, 0.25, 0.25, grid).profit_per_hour() == pytest.approx(0.30)
+
+
+def test_charging_from_solar_is_not_selling():
+    # 3 kW solar, 1 kW house, battery stores 2 kW, nothing exported.
+    # Without the battery those 2 kW would have been sold at the feed-in price.
+    assert Sample(2.0, 0.0, 0.30, 0.05, 0.0).profit_per_hour() == pytest.approx(-0.10)
+
+
+def test_standby_and_wear():
+    # Idle battery drawing 20 W from the grid costs money.
+    assert Sample(0.0, 0.0, 0.30, 0.05, 0.5, standby_kw=0.02).profit_per_hour() == pytest.approx(-0.006)
+    # Discharging 1 kW into the house, 0.05 EUR wear per kWh delivered.
+    assert Sample(0.0, 1.0, 0.30, 0.05, 0.2, wear_per_kwh=0.05).profit_per_hour() == pytest.approx(0.25)
+    # Same without a grid meter.
+    assert Sample(0.0, 1.0, 0.30, standby_kw=0.02, wear_per_kwh=0.05).profit_per_hour() == pytest.approx(0.98 * 0.30 - 0.05)

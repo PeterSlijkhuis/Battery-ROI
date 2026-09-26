@@ -41,12 +41,17 @@ class Sample:
     import_price: float
     export_price: float | None = None
     grid_kw: float | None = None  # + importing, - exporting
+    standby_kw: float = 0.0  # the battery's own draw its power sensors don't show
+    wear_per_kwh: float = 0.0  # degradation cost per kWh discharged
 
     def profit_per_hour(self) -> float:
+        # Energy the battery removed from (+) or added to (-) the grid meter.
+        shifted = self.discharge_kw - self.charge_kw - self.standby_kw
+        wear = self.discharge_kw * self.wear_per_kwh
         if self.export_price is None or self.grid_kw is None:
-            return (self.discharge_kw - self.charge_kw) * self.import_price
-        without_battery = self.grid_kw - self.charge_kw + self.discharge_kw
-        return self._bill(without_battery) - self._bill(self.grid_kw)
+            return shifted * self.import_price - wear
+        without_battery = self.grid_kw + shifted
+        return self._bill(without_battery) - self._bill(self.grid_kw) - wear
 
     def _bill(self, grid_kw: float) -> float:
         return grid_kw * (self.import_price if grid_kw > 0 else self.export_price)

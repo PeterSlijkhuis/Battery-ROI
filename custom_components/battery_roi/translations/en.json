@@ -14,6 +14,8 @@
           "grid_power": "Grid power (P1 meter)",
           "solar_power": "Solar production",
           "soc": "Battery state of charge",
+          "standby_power": "Battery standby power",
+          "wear_cost": "Wear cost per kWh discharged",
           "battery_cost": "Battery purchase cost"
         },
         "data_description": {
@@ -26,6 +28,8 @@
           "grid_power": "Optional. HomeWizard P1 or another meter: positive when importing, negative when exporting. Needed to tell whether the battery avoided buying or selling.",
           "solar_power": "Optional, shown on the card.",
           "soc": "Optional, shown on the card.",
+          "standby_power": "Optional. What the battery uses itself (inverter, BMS) that its power sensors don't show, in W. Counted as a cost. Leave empty if your charge sensor already includes it.",
+          "wear_cost": "Optional. Battery degradation in EUR per kWh delivered, for example purchase cost ÷ (capacity × rated cycles). Counted once per kWh, on discharge.",
           "battery_cost": "Optional. Adds a payback sensor."
         }
       }
@@ -52,6 +56,8 @@
           "grid_power": "Grid power (P1 meter)",
           "solar_power": "Solar production",
           "soc": "Battery state of charge",
+          "standby_power": "Battery standby power",
+          "wear_cost": "Wear cost per kWh discharged",
           "battery_cost": "Battery purchase cost"
         },
         "data_description": {
@@ -64,6 +70,8 @@
           "grid_power": "Optional. HomeWizard P1 or another meter: positive when importing, negative when exporting. Needed to tell whether the battery avoided buying or selling.",
           "solar_power": "Optional, shown on the card.",
           "soc": "Optional, shown on the card.",
+          "standby_power": "Optional. What the battery uses itself (inverter, BMS) that its power sensors don't show, in W. Counted as a cost. Leave empty if your charge sensor already includes it.",
+          "wear_cost": "Optional. Battery degradation in EUR per kWh delivered, for example purchase cost ÷ (capacity × rated cycles). Counted once per kWh, on discharge.",
           "battery_cost": "Optional. Adds a payback sensor."
         }
       }

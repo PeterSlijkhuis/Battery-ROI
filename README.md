@@ -81,6 +81,8 @@ Pick your sensors. Only battery power and price are required.
 | Grid power (P1) | | HomeWizard P1 active power, + import / − export |
 | Solar production | | Shown on the card |
 | Battery state of charge | | Shown on the card |
+| Battery standby power | | W the battery uses itself that its power sensors miss (inverter, BMS) |
+| Wear cost per kWh discharged | | Degradation, e.g. price ÷ (capacity × rated cycles) |
 | Battery purchase cost | | Adds a payback sensor |
 
 To change sensors later: **Settings → Devices & services → Battery ROI → Configure**.
@@ -154,7 +156,7 @@ flowchart LR
 | charging | exporting solar surplus | feed-in price (gave up selling) |
 | charging | importing | import price (bought) |
 
-Included: round-trip losses, because you charge more kWh than you get back. Not included: battery wear.
+Included: round-trip losses, because you charge more kWh than you get back. Optional: the battery's own standby draw, and wear per kWh discharged (counted once, not on both charge and discharge).
 
 > **Tip for the Netherlands:** net metering ends on 1 January 2027. From then on a stored solar kWh is worth the feed-in price, not the import price, so add a feed-in price and your P1 meter to keep the numbers honest.
 

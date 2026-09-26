@@ -31,6 +31,8 @@ from .const import (
     CONF_PRICE_SURCHARGE,
     CONF_SOC,
     CONF_SOLAR_POWER,
+    CONF_STANDBY_POWER,
+    CONF_WEAR_COST,
     DOMAIN,
     POSITIVE_CHARGING,
     VERSION,
@@ -185,7 +187,12 @@ class BatteryRoiHub:
         if None not in (charge, discharge, price):
             # A feed-in price only helps when the grid meter says which way power flows.
             split = feed_in is not None and grid is not None
-            sample = Sample(charge, discharge, price, feed_in if split else None, grid if split else None)
+            sample = Sample(
+                charge, discharge, price,
+                feed_in if split else None, grid if split else None,
+                standby_kw=(self.config.get(CONF_STANDBY_POWER) or 0) / 1000,
+                wear_per_kwh=self.config.get(CONF_WEAR_COST) or 0,
+            )
         self.acc.update(dt_util.now(), sample)
         self.store.async_delay_save(self.acc.as_dict, 60)
         async_dispatcher_send(self.hass, self.signal)
