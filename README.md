@@ -226,7 +226,7 @@ Tap a tile or the ticker to see its history graph.
 - *Profit goes down while the battery is **discharging*** → the sign is flipped. Change **Positive power means** (step 4 via Configure), or check your grid power sensor, then **Reset totals**.
 - *Profit is far too small or large* → check the price sensor's unit (EUR/kWh, ct/kWh and EUR/MWh are handled) and that *Extra cost* is only filled in for raw market prices.
 - *Card says Battery ROI isn't set up* → finish step 4, then refresh the browser.
-- *Card doesn't appear in the card list, or "Custom element doesn't exist: battery-roi-card"* → the page was loaded before Battery ROI was installed. In a browser press Ctrl+F5. In the phone app go to **Settings → Companion app → Troubleshooting → Reset frontend cache**, then close and reopen the app.
+- *Card doesn't appear in the card list, or "Custom element doesn't exist: battery-roi-card"* → the page was loaded before Battery ROI was installed. In a browser press Ctrl+F5. In the phone app go to **Settings → Companion app → Troubleshooting → Reset frontend cache**, then close the app completely (swipe it away) and open it again. Reset alone is not enough.
 
 ### Card options
 
