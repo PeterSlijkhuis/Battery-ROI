@@ -38,7 +38,13 @@ Not included: battery wear, and the difference between import and feed‑in pric
    ```yaml
    type: custom:battery-roi-card
    ```
-   Optional keys: `title`, `daily`, `monthly`, `rate`, `soc`, `price`, `currency` (default `EUR`).
+   Optional keys: `title`, `daily`, `monthly`, `rate`, `soc`, `price`, `currency` (default `EUR`), and `payback` / `efficiency` to show sensors you already have, for example:
+   ```yaml
+   type: custom:battery-roi-card
+   payback: sensor.battery_payback_years
+   efficiency: sensor.battery_measured_efficiency
+   ```
+   The card also shows a monthly pace: month-to-date profit scaled by the exact time elapsed and the real length of the month, hidden on the 1st.
 
 The card uses only Home Assistant theme variables (`--success-color`, `--error-color`, `--primary-text-color`, ...), so it follows your theme and dark mode.
 

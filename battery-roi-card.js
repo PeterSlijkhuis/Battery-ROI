@@ -15,6 +15,8 @@ const DEFAULTS = {
   rate: "sensor.battery_roi_rate",
   soc: "sensor.battery_roi_state_of_charge",
   price: "sensor.battery_roi_price",
+  payback: null,
+  efficiency: null,
   currency: "EUR",
 };
 
@@ -57,6 +59,19 @@ class BatteryRoiCard extends LitElement {
     return value > 0 ? "up" : "down";
   }
 
+  // Month-to-date profit projected over the whole month, using the exact
+  // time elapsed and this month's real length. Hidden in the first day,
+  // when a few hours of data would be blown up 30x.
+  _pace(monthly) {
+    if (monthly === null) return null;
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const elapsed = now - start;
+    if (elapsed < 86400000) return null;
+    return (monthly * (end - start)) / elapsed;
+  }
+
   _moreInfo(entityId) {
     this.dispatchEvent(
       new CustomEvent("hass-more-info", {
@@ -91,6 +106,9 @@ class BatteryRoiCard extends LitElement {
     const rate = this._num(c.rate);
     const soc = this._num(c.soc);
     const price = this._num(c.price);
+    const pace = this._pace(this._num(c.monthly));
+    const payback = c.payback ? this._num(c.payback) : null;
+    const efficiency = c.efficiency ? this._num(c.efficiency) : null;
     const rateTrend = this._trend(rate);
     const rateText =
       rateTrend === "flat" ? "Idle" : rateTrend === "up" ? "Earning" : "Spending";
@@ -110,6 +128,13 @@ class BatteryRoiCard extends LitElement {
             ${soc === null ? nothing : html`<span>${Math.round(soc)}%</span>`}
           </span>
         </div>
+        ${pace === null && payback === null && efficiency === null
+          ? nothing
+          : html`<div class="outlook">
+              ${pace === null ? nothing : html`<span>Pace ${this._money(pace, { signed: true })}/month</span>`}
+              ${payback === null ? nothing : html`<span>Payback ${payback.toFixed(1)} y</span>`}
+              ${efficiency === null ? nothing : html`<span>Efficiency ${Math.round(efficiency)}%</span>`}
+            </div>`}
       </ha-card>
     `;
   }
@@ -173,9 +198,16 @@ class BatteryRoiCard extends LitElement {
       font-weight: 500;
       font-variant-numeric: tabular-nums;
     }
-    .meta {
+    .meta,
+    .outlook {
       display: flex;
       gap: 12px;
+    }
+    .outlook {
+      flex-wrap: wrap;
+      padding: 0 16px 12px;
+      color: var(--secondary-text-color);
+      font-size: 0.85em;
     }
   `;
 }
