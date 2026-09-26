@@ -3,10 +3,14 @@
 // so the card also works without internet.
 import { LitElement, html, css, nothing } from "./lit.js";
 
+// Must match VERSION in const.py (a test checks this).
+const CARD_VERSION = "0.3.0";
+
 const DEFAULTS = {
   title: "Battery ROI",
   daily: "sensor.battery_roi_profit_today",
   monthly: "sensor.battery_roi_profit_this_month",
+  total: "sensor.battery_roi_profit_total",
   rate: "sensor.battery_roi_rate",
   payback: "sensor.battery_roi_payback",
   efficiency: "sensor.battery_roi_efficiency",
@@ -19,16 +23,18 @@ const DEFAULTS = {
 
 const TEXT = {
   en: {
-    today: "Today", yesterday: "Yesterday", month: "This month", lastMonth: "Last month",
+    today: "Today", yesterday: "Yesterday", month: "This month", lastMonth: "Last month", total: "Lifetime", since: "Since",
     earning: "Earning", spending: "Spending", idle: "Idle",
     pace: "Pace", perMonth: "/month", payback: "Payback", years: "y", efficiency: "Efficiency",
     missing: "Battery ROI isn't set up yet. Add it under Settings → Devices & services.",
+    updated: "Battery ROI was updated. Tap here to load the new card.",
   },
   nl: {
-    today: "Vandaag", yesterday: "Gisteren", month: "Deze maand", lastMonth: "Vorige maand",
+    today: "Vandaag", yesterday: "Gisteren", month: "Deze maand", lastMonth: "Vorige maand", total: "Totaal", since: "Sinds",
     earning: "Verdient", spending: "Kost", idle: "Rust",
     pace: "Tempo", perMonth: "/maand", payback: "Terugverdiend in", years: "jaar", efficiency: "Rendement",
     missing: "Battery ROI is nog niet ingesteld. Voeg het toe via Instellingen → Apparaten & diensten.",
+    updated: "Battery ROI is bijgewerkt. Tik hier om de nieuwe kaart te laden.",
   },
 };
 
@@ -51,6 +57,7 @@ class BatteryRoiCard extends LitElement {
         { name: "title", selector: { text: {} } },
         { name: "daily", selector: ENTITY },
         { name: "monthly", selector: ENTITY },
+        { name: "total", selector: ENTITY },
         { name: "rate", selector: ENTITY },
         {
           type: "expandable",
@@ -70,6 +77,7 @@ class BatteryRoiCard extends LitElement {
           title: "Title",
           daily: "Profit today sensor",
           monthly: "Profit this month sensor",
+          total: "Profit total sensor",
           rate: "Rate sensor",
           payback: "Payback sensor",
           efficiency: "Efficiency sensor",
@@ -149,20 +157,24 @@ class BatteryRoiCard extends LitElement {
     );
   }
 
-  _tile(label, entityId, previousLabel) {
+  _tile(label, entityId, previousLabel, extraClass = "") {
     const value = this._num(entityId);
-    const last = parseFloat(this.hass.states[entityId]?.attributes?.last_period);
+    const attrs = this.hass.states[entityId]?.attributes ?? {};
+    const last = parseFloat(attrs.last_period);
+    const since = attrs.tracking_since ? new Date(attrs.tracking_since) : null;
     const trend = this._trend(value);
     const icon = { up: "mdi:trending-up", down: "mdi:trending-down", flat: "mdi:trending-neutral" }[trend];
     return html`
-      <button class="tile ${trend}" @click=${() => this._moreInfo(entityId)}>
+      <button class="tile ${trend} ${extraClass}" @click=${() => this._moreInfo(entityId)}>
         <span class="label">${label}</span>
         <span class="value">
           <ha-icon .icon=${icon}></ha-icon>${this._money(value, { signed: true })}
         </span>
         ${Number.isFinite(last)
           ? html`<span class="sub">${previousLabel} ${this._money(last)}</span>`
-          : nothing}
+          : since && !isNaN(since)
+            ? html`<span class="sub">${this._t.since} ${since.toLocaleDateString(this._lang, { day: "numeric", month: "short", year: "numeric" })}</span>`
+            : nothing}
       </button>
     `;
   }
@@ -186,11 +198,17 @@ class BatteryRoiCard extends LitElement {
     const rateText =
       rateTrend === "flat" ? t.idle : rateTrend === "up" ? t.earning : t.spending;
 
+    const stale = rateAttrs.version && rateAttrs.version !== CARD_VERSION;
+
     return html`
       <ha-card .header=${c.title}>
+        ${stale
+          ? html`<button class="updated" @click=${() => location.reload()}>${t.updated}</button>`
+          : nothing}
         <div class="tiles">
           ${this._tile(t.today, c.daily, t.yesterday)}
           ${this._tile(t.month, c.monthly, t.lastMonth)}
+          ${c.total && this.hass.states[c.total] ? this._tile(t.total, c.total, undefined, "wide") : nothing}
         </div>
         <div class="ticker" @click=${() => this._moreInfo(c.rate)}>
           <span class="live ${rateTrend}">
@@ -214,16 +232,32 @@ class BatteryRoiCard extends LitElement {
   }
 
   static styles = css`
+    .updated {
+      display: block;
+      width: calc(100% - 32px);
+      margin: 0 16px 12px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      background: var(--warning-color, #ffa600);
+      color: var(--text-primary-color, #fff);
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
     .missing {
       padding: 0 16px 16px;
       color: var(--secondary-text-color);
     }
     .tiles {
       display: grid;
-      /* Two tiles side by side, stacked when the card is narrow. */
+      /* Today and month side by side (stacked when narrow), lifetime full width below. */
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 12px;
       padding: 0 16px 12px;
+    }
+    .tile.wide {
+      grid-column: 1 / -1;
     }
     .tile {
       display: flex;
@@ -252,6 +286,7 @@ class BatteryRoiCard extends LitElement {
       font-size: 1.6em;
       font-weight: 600;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
     }
     .up .value,
     .live.up {

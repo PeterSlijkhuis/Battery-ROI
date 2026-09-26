@@ -200,6 +200,7 @@ Some numbers stay **Unknown** at first, on purpose:
 | Part of the card | Meaning |
 | --- | --- |
 | **Today** / **This month** tiles | Profit so far, with *Yesterday* / *Last month* underneath for comparison |
+| **Lifetime** tile | Everything the battery has earned since you set up Battery ROI (or last pressed *Reset totals*), with the start date underneath |
 | Arrow and color | Green arrow up = earned money, red arrow down = cost money, grey = (about) zero |
 | *Earning / Spending / Idle €…/h* | What the battery earns or costs **right now**, per hour |
 | Price, ☀ kW, 🔋 % | Current price per kWh, solar production and battery level (only if you set those sensors) |
@@ -218,7 +219,7 @@ Tap a tile or the ticker to see its history graph.
 | See all Battery ROI numbers | **Settings → Devices & services → Battery ROI → device** |
 | See a number's history | Tap it on the card |
 | Change what the card shows | Edit the dashboard → click the card → **Edit** |
-| Update to a new version | **Settings** lists an update for **Battery ROI** at the top → click it → **Install**, then restart (step 3) |
+| Update to a new version | **Settings** lists an update for **Battery ROI** at the top → click it → **Install**, then restart (step 3). The card then shows an orange *Battery ROI was updated* bar: tap it once to load the new card |
 
 **Numbers look wrong?**
 
@@ -226,7 +227,7 @@ Tap a tile or the ticker to see its history graph.
 - *Profit goes down while the battery is **discharging*** → the sign is flipped. Change **Positive power means** (step 4 via Configure), or check your grid power sensor, then **Reset totals**.
 - *Profit is far too small or large* → check the price sensor's unit (EUR/kWh, ct/kWh and EUR/MWh are handled) and that *Extra cost* is only filled in for raw market prices.
 - *Card says Battery ROI isn't set up* → finish step 4, then refresh the browser.
-- *Card doesn't appear in the card list* → refresh the browser (Ctrl+F5); on the phone app, close and reopen it.
+- *Card doesn't appear in the card list, or "Custom element doesn't exist: battery-roi-card"* → the page was loaded before Battery ROI was installed, and Home Assistant never adds a new card to a page that is already open. In a browser press Ctrl+F5. In the phone app close the app completely (swipe it away) and open it again. Still missing? **Settings → Companion app → Troubleshooting → Reset frontend cache**, then close and reopen the app once more.
 
 ### Card options
 
@@ -237,6 +238,7 @@ The visual editor covers everything. For YAML, all keys are optional:
 | `title` | `Battery ROI` |
 | `daily` | `sensor.battery_roi_profit_today` |
 | `monthly` | `sensor.battery_roi_profit_this_month` |
+| `total` | `sensor.battery_roi_profit_total` (the Lifetime tile) |
 | `rate` | `sensor.battery_roi_rate` |
 | `payback` | `sensor.battery_roi_payback` |
 | `efficiency` | `sensor.battery_roi_efficiency` |
@@ -257,7 +259,7 @@ The **pace** line projects this month's profit to a full month, using the exact 
 | `sensor.battery_roi_rate` | €/h right now. Positive = earning. Attributes: price, feed-in price, grid kW, solar kW, state of charge |
 | `sensor.battery_roi_profit_today` | Profit today, `last_period` = yesterday |
 | `sensor.battery_roi_profit_this_month` | Profit this month, `last_period` = last month |
-| `sensor.battery_roi_profit_total` | Profit since setup |
+| `sensor.battery_roi_profit_total` | Profit since setup, `tracking_since` = start date |
 | `sensor.battery_roi_energy_charged` | kWh into the battery |
 | `sensor.battery_roi_energy_discharged` | kWh out of the battery |
 | `sensor.battery_roi_efficiency` | Discharged ÷ charged, shown after 1 kWh |
