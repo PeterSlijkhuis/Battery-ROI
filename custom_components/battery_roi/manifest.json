@@ -1,0 +1,14 @@
+{
+  "domain": "battery_roi",
+  "name": "Battery ROI",
+  "codeowners": ["@PeterSlijkhuis"],
+  "config_flow": true,
+  "dependencies": ["frontend", "http"],
+  "documentation": "https://github.com/PeterSlijkhuis/Battery-ROI",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/PeterSlijkhuis/Battery-ROI/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.1.0"
+}
