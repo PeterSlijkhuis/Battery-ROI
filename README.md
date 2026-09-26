@@ -147,7 +147,7 @@ All fields explained:
 | | VAT % | | **Only for raw market prices**: 21 in the Netherlands |
 | | Feed-in price sensor | | What you get per exported kWh, from a sensor |
 | | Fixed feed-in price | | Same, as a fixed amount (0 if you get nothing). Use one of the two |
-| | Net metering until | | The day net metering ends for you. Before it the feed-in price is ignored, after it it counts. Prefilled with 1 January 2027 in the Netherlands |
+| | Net metering until | | The day net metering ends for you. Before it the feed-in price is ignored, after it it counts Optional; leave empty if you have no net metering |
 | Grid and solar | Grid power | | Smart meter or energy monitor, + import / − export |
 | | Solar production | | Shown on the card |
 | Battery costs | Standby power | | Watts the battery uses itself that its power sensors miss |
@@ -322,7 +322,7 @@ flowchart LR
 
 Included: round-trip losses, because you charge more kWh than you get back. Optional: the battery's own standby draw, and wear per kWh discharged (counted once, not on both charge and discharge).
 
-> **Tip for the Netherlands:** net metering ends on 1 January 2027. From then on a stored solar kWh is worth the feed-in price, not the import price, Setup prefills that date, so add your feed-in price and grid meter once and the numbers switch over on their own.
+> **Tip for the Netherlands:** net metering ends on 1 January 2027. From then on a stored solar kWh is worth the feed-in price, not the import price, Enter your feed-in price, grid meter and *Net metering until* = 1 January 2027 once, and the numbers switch over on their own.
 
 > **Tip for raw EPEX prices:** they exclude energy tax, supplier fee and VAT. Fill in *Extra cost per kWh* and *VAT*: the import price becomes (market price + extra cost) × (1 + VAT).
 

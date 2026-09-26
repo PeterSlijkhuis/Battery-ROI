@@ -20,9 +20,6 @@ CONF_STANDBY_POWER = "standby_power"
 CONF_WEAR_COST = "wear_cost"
 CONF_INSTALL_DATE = "install_date"
 
-# Dutch net metering (salderingsregeling) ends on this day.
-NL_NET_METERING_END = "2027-01-01"
-
 POSITIVE_CHARGING = "charging"
 POSITIVE_DISCHARGING = "discharging"
 

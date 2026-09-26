@@ -31,7 +31,6 @@ from .const import (
     CONF_VAT,
     CONF_WEAR_COST,
     DOMAIN,
-    NL_NET_METERING_END,
     POSITIVE_CHARGING,
     POSITIVE_DISCHARGING,
 )
@@ -146,8 +145,6 @@ class BatteryRoiConfigFlow(ConfigFlow, domain=DOMAIN):
                     f"{DOMAIN}_reload",
                 )
                 return self.async_create_entry(title="Battery ROI", data=data)
-        if user_input is None and self.hass.config.country == "NL":
-            user_input = {"prices": {CONF_NET_METERING_UNTIL: NL_NET_METERING_END}}
         return self.async_show_form(
             step_id="user",
             data_schema=self.add_suggested_values_to_schema(_schema(), user_input),
