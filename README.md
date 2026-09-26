@@ -197,6 +197,16 @@ Some numbers stay **Unknown** at first, on purpose:
 
 **Judge the battery on a full day, and better on a full week.** A single charge without a discharge will always be red.
 
+### What to expect on your contract
+
+| Contract | Where the money comes from | What the card usually shows |
+| --- | --- | --- |
+| Dynamic (hourly prices) | Charging in cheap hours, discharging in dear ones, plus stored solar | Clearly positive on most days |
+| Peak/off-peak | The gap between the two prices, often only a few cents, plus stored solar | Small; can be negative when the gap is smaller than the charging losses |
+| Single rate | Only stored solar that you would otherwise have exported for less | Only charging losses, **unless** you enter a feed-in price and grid power |
+
+A small or negative number on a fixed contract is not a bug: it is what the battery earns on price differences alone. The solar you keep is where the money is, so on a fixed contract a feed-in price and grid power are not optional.
+
 ## Reading the card
 
 <picture>
