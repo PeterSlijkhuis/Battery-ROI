@@ -145,7 +145,8 @@ All fields explained:
 | Prices | Electricity price (import) | ✅ | EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… |
 | | Extra cost per kWh, excl. VAT | | **Only for raw market prices** (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh |
 | | VAT % | | **Only for raw market prices**: 21 in the Netherlands |
-| | Feed-in price | | What you get per exported kWh |
+| | Feed-in price sensor | | What you get per exported kWh, from a sensor |
+| | Fixed feed-in price | | Same, as a fixed amount (0 if you get nothing). Use one of the two |
 | Grid and solar | Grid power | | Smart meter or energy monitor, + import / − export |
 | | Solar production | | Shown on the card |
 | Battery costs | Standby power | | Watts the battery uses itself that its power sensors miss |
@@ -303,7 +304,7 @@ flowchart LR
 ```
 
 - **Price sensor only.** `profit per hour = (discharge kW − charge kW) × price`. The same price is used in both directions, which is right under net metering (*salderingsregeling*).
-- **Plus feed-in price and grid power.** Each kWh is valued at the price it actually displaced:
+- **Plus feed-in price and grid power.** Battery ROI can tell solar charging from grid charging. Each kWh is valued at the price it actually displaced:
 
 | Battery is… | While the house is… | Valued at |
 | --- | --- | --- |
@@ -311,6 +312,12 @@ flowchart LR
 | discharging | exporting | feed-in price (extra sold) |
 | charging | exporting solar surplus | feed-in price (gave up selling) |
 | charging | importing | import price (bought) |
+
+**Is solar charging free?** Only if you'd get nothing for exporting it. Storing a solar kWh means not selling it, so it costs whatever you'd have been paid:
+
+- **Net metering (saldering):** an exported kWh cancels a bought one, so a stored solar kWh is worth the full price. Leave both feed-in fields empty; the plain price model is then correct.
+- **No net metering:** set a feed-in price (sensor or fixed) plus grid power. Solar charging then costs that feed-in price, often a few cents, and grid charging costs the full import price.
+- **You get nothing for export:** set the fixed feed-in price to 0 and solar charging is free.
 
 Included: round-trip losses, because you charge more kWh than you get back. Optional: the battery's own standby draw, and wear per kWh discharged (counted once, not on both charge and discharge).
 

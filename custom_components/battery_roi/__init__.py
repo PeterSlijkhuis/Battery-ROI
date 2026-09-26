@@ -27,6 +27,7 @@ from .const import (
     CARD_URL,
     CONF_CHARGE_POWER,
     CONF_DISCHARGE_POWER,
+    CONF_FEED_IN_FIXED,
     CONF_FEED_IN_PRICE,
     CONF_GRID_POWER,
     CONF_INSTALL_DATE,
@@ -208,6 +209,8 @@ class BatteryRoiHub:
             price += self.config.get(CONF_PRICE_SURCHARGE) or 0
             price *= 1 + (self.config.get(CONF_VAT) or 0) / 100
         feed_in = read(CONF_FEED_IN_PRICE, _per_kwh)
+        if feed_in is None:
+            feed_in = self.config.get(CONF_FEED_IN_FIXED)
         grid = read(CONF_GRID_POWER, _kw)
 
         charge = read(CONF_CHARGE_POWER, _kw)

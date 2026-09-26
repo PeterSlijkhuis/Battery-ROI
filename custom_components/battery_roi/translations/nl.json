@@ -32,13 +32,15 @@
               "price": "Stroomprijs (afname)",
               "price_surcharge": "Extra kosten per kWh, exclusief btw",
               "vat": "Btw",
-              "feed_in_price": "Terugleverprijs"
+              "feed_in_price": "Terugleverprijs-sensor",
+              "feed_in_fixed": "Vaste terugleverprijs"
             },
             "data_description": {
               "price": "Je dynamische tariefsensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh en EUR/MWh worden automatisch omgerekend.",
               "price_surcharge": "Alleen voor kale marktprijzen (EPEX, Nordpool): energiebelasting + inkoopvergoeding in EUR/kWh. Leeg laten bij all-in prijzen zoals Tibber.",
               "vat": "Alleen voor kale marktprijzen: over prijs + extra kosten. In Nederland 21. Leeg laten bij all-in prijzen.",
-              "feed_in_price": "Wat je per teruggeleverde kWh krijgt. Bij veel dynamische contracten is dat dezelfde marktprijssensor als hierboven. Werkt alleen samen met netvermogen."
+              "feed_in_price": "Wat je per teruggeleverde kWh krijgt. Bij veel dynamische contracten is dat dezelfde marktprijssensor als hierboven. Werkt alleen samen met netvermogen: zonnestroom die de batterij in gaat kost dan wat je voor teruglevering had gekregen, laden van het net kost de inkoopprijs.",
+              "feed_in_fixed": "Gebruik dit in plaats van een sensor als je een vast bedrag per teruggeleverde kWh krijgt (0 als je niets krijgt). Laat beide leeg zolang de salderingsregeling geldt: een opgeslagen zonne-kWh is dan de volle prijs waard."
             }
           },
           "grid": {
@@ -110,13 +112,15 @@
               "price": "Stroomprijs (afname)",
               "price_surcharge": "Extra kosten per kWh, exclusief btw",
               "vat": "Btw",
-              "feed_in_price": "Terugleverprijs"
+              "feed_in_price": "Terugleverprijs-sensor",
+              "feed_in_fixed": "Vaste terugleverprijs"
             },
             "data_description": {
               "price": "Je dynamische tariefsensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh en EUR/MWh worden automatisch omgerekend.",
               "price_surcharge": "Alleen voor kale marktprijzen (EPEX, Nordpool): energiebelasting + inkoopvergoeding in EUR/kWh. Leeg laten bij all-in prijzen zoals Tibber.",
               "vat": "Alleen voor kale marktprijzen: over prijs + extra kosten. In Nederland 21. Leeg laten bij all-in prijzen.",
-              "feed_in_price": "Wat je per teruggeleverde kWh krijgt. Bij veel dynamische contracten is dat dezelfde marktprijssensor als hierboven. Werkt alleen samen met netvermogen."
+              "feed_in_price": "Wat je per teruggeleverde kWh krijgt. Bij veel dynamische contracten is dat dezelfde marktprijssensor als hierboven. Werkt alleen samen met netvermogen: zonnestroom die de batterij in gaat kost dan wat je voor teruglevering had gekregen, laden van het net kost de inkoopprijs.",
+              "feed_in_fixed": "Gebruik dit in plaats van een sensor als je een vast bedrag per teruggeleverde kWh krijgt (0 als je niets krijgt). Laat beide leeg zolang de salderingsregeling geldt: een opgeslagen zonne-kWh is dan de volle prijs waard."
             }
           },
           "grid": {

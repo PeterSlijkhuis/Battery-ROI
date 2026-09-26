@@ -17,6 +17,7 @@ from .const import (
     CONF_BATTERY_COST,
     CONF_CHARGE_POWER,
     CONF_DISCHARGE_POWER,
+    CONF_FEED_IN_FIXED,
     CONF_FEED_IN_PRICE,
     CONF_GRID_POWER,
     CONF_INSTALL_DATE,
@@ -68,6 +69,7 @@ SECTIONS: dict[str, tuple[bool, dict]] = {
         vol.Optional(CONF_PRICE_SURCHARGE): _number(maximum=1),
         vol.Optional(CONF_VAT): _number("%", 0.1, 100),
         vol.Optional(CONF_FEED_IN_PRICE): _SENSOR,
+        vol.Optional(CONF_FEED_IN_FIXED): _number(maximum=1),
     }),
     "grid": (True, {
         vol.Optional(CONF_GRID_POWER): _POWER,
