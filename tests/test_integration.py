@@ -202,7 +202,7 @@ async def test_fixed_day_and_night_price_without_sensor(hass: HomeAssistant, fre
 
     await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        _nest({**no_price, "price_fixed": 0.30, "price_night": 0.20, "night_start": "23:00:00", "night_end": "07:00:00", "night_weekend": True}),
+        _nest({**no_price, "price_fixed": 0.30, "price_night": 0.20, "night_start": "23:00:00", "night_end": "07:00:00"}),
     )
     await hass.async_block_till_done()
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.30)
@@ -212,7 +212,7 @@ async def test_fixed_day_and_night_price_without_sensor(hass: HomeAssistant, fre
     await hass.async_block_till_done()
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.2002)
 
-    # Saturday noon: the whole weekend is at the night price.
+    # Saturday noon: weekends are off-peak by default.
     freezer.move_to("2026-09-26 12:00:00+02:00")
     hass.states.async_set("sensor.ecoflow_power", "-1000", {"unit_of_measurement": "W"})
     await hass.async_block_till_done()

@@ -148,7 +148,7 @@ All fields explained:
 | | Peak price | ✅ or a sensor | All-in price per kWh. On a single-rate contract enter your price here and leave off-peak empty. With a sensor too, it fills in whenever the sensor is unavailable |
 | | Off-peak price | | Peak/off-peak contracts only: the all-in off-peak price |
 | | Off-peak from / until | | When the off-peak price applies (default 23:00 to 07:00) |
-| | Off-peak all weekend | | Switch on if your off-peak price also runs all Saturday and Sunday |
+| | Off-peak all weekend | | On by default: Saturday and Sunday are off-peak all day, as on most peak/off-peak contracts. Switch off if yours isn't |
 | | Feed-in price sensor | | What you get per exported kWh, from a sensor |
 | | Fixed feed-in price | | Same, as a fixed amount (0 if you get nothing). Use one of the two |
 | | Net metering until | | The day net metering ends for you. Before it the feed-in price is ignored, after it it counts. Optional; leave empty if you have no net metering |

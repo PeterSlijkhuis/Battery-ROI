@@ -78,7 +78,7 @@ SECTIONS: dict[str, tuple[bool, dict]] = {
         vol.Optional(CONF_PRICE_NIGHT): _number(maximum=5),
         vol.Optional(CONF_NIGHT_START, default="23:00:00"): selector.TimeSelector(),
         vol.Optional(CONF_NIGHT_END, default="07:00:00"): selector.TimeSelector(),
-        vol.Optional(CONF_NIGHT_WEEKEND, default=False): selector.BooleanSelector(),
+        vol.Optional(CONF_NIGHT_WEEKEND, default=True): selector.BooleanSelector(),
         vol.Optional(CONF_FEED_IN_PRICE): _SENSOR,
         vol.Optional(CONF_FEED_IN_FIXED): _number(maximum=1),
         vol.Optional(CONF_NET_METERING_UNTIL): selector.DateSelector(),
