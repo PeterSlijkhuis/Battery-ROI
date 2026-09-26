@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+import logging
+from datetime import datetime, time, timedelta
 from pathlib import Path
 
+from homeassistant.components import persistent_notification
 from homeassistant.components.frontend import add_extra_js_url
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
@@ -19,6 +21,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 
+from . import backfill
 from .accumulator import Accumulator, Sample
 from .const import (
     CARD_URL,
@@ -26,6 +29,7 @@ from .const import (
     CONF_DISCHARGE_POWER,
     CONF_FEED_IN_PRICE,
     CONF_GRID_POWER,
+    CONF_INSTALL_DATE,
     CONF_POSITIVE_MEANS,
     CONF_PRICE,
     CONF_PRICE_SURCHARGE,
@@ -38,6 +42,8 @@ from .const import (
     POSITIVE_CHARGING,
     VERSION,
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [Platform.BUTTON, Platform.SENSOR]
 TICK = timedelta(seconds=30)
@@ -119,20 +125,47 @@ class BatteryRoiHub:
 
     async def async_start(self) -> None:
         self.acc = Accumulator(await self.store.async_load())
-        watched = [
-            self.config[k]
-            for k in (
-                CONF_CHARGE_POWER, CONF_DISCHARGE_POWER, CONF_PRICE, CONF_FEED_IN_PRICE,
-                CONF_GRID_POWER, CONF_SOLAR_POWER, CONF_SOC,
-            )
-            if self.config.get(k)
-        ]
         self._unsubs = [
-            async_track_state_change_event(self.hass, watched, self._on_change),
+            async_track_state_change_event(self.hass, self._watched, self._on_change),
             async_track_time_interval(self.hass, self._on_tick, TICK),
             async_track_time_interval(self.hass, self._on_save, SAVE_EVERY),
         ]
         self._sample()
+        install = self.config.get(CONF_INSTALL_DATE)
+        if install and self.acc.totals.backfilled_from != install and "recorder" in self.hass.config.components:
+            self.hass.async_create_background_task(self._async_backfill(install), f"{DOMAIN} backfill")
+
+    @property
+    def _watched(self) -> list[str]:
+        keys = (
+            CONF_CHARGE_POWER, CONF_DISCHARGE_POWER, CONF_PRICE, CONF_FEED_IN_PRICE,
+            CONF_GRID_POWER, CONF_SOLAR_POWER, CONF_SOC,
+        )
+        return [self.config[k] for k in keys if self.config.get(k)]
+
+    async def _async_backfill(self, install: str) -> None:
+        """Replace the totals with a replay of the recorded history since the install date."""
+        start = dt_util.as_utc(datetime.combine(datetime.fromisoformat(install).date(), time(), dt_util.get_default_time_zone()))
+        end = dt_util.utcnow()
+        try:
+            points, running = await backfill.async_load(self.hass, self._watched, start, end)
+            acc, first = await self.hass.async_add_executor_job(
+                backfill.replay, points, start, end, lambda get: self._build(get)[0], running
+            )
+        except Exception:  # noqa: BLE001 - history is a bonus; live tracking must keep running
+            _LOGGER.exception("Could not read history for Battery ROI")
+            return
+        acc.totals.since = start.isoformat()
+        acc.totals.backfilled_from = install
+        self.acc = acc
+        self._sample()
+        await self.store.async_save(self.acc.as_dict())
+        persistent_notification.async_create(
+            self.hass,
+            _backfill_message(self.hass, first, start),
+            "Battery ROI",
+            f"{DOMAIN}_backfill",
+        )
 
     async def async_stop(self) -> None:
         for unsub in self._unsubs:
@@ -156,22 +189,30 @@ class BatteryRoiHub:
     async def _on_save(self, now) -> None:
         await self.store.async_save(self.acc.as_dict())
 
-    def _read(self, key: str, parse):
-        entity_id = self.config.get(key)
-        return parse(self.hass.states.get(entity_id)) if entity_id else None
-
     @callback
     def _sample(self) -> None:
-        price = self._read(CONF_PRICE, _per_kwh)
+        sample, self.live = self._build(self.hass.states.get)
+        self.acc.update(dt_util.now(), sample)
+        self.store.async_delay_save(self.acc.as_dict, 60)
+        async_dispatcher_send(self.hass, self.signal)
+
+    def _build(self, get) -> tuple[Sample | None, dict[str, float | None]]:
+        """Turn the chosen sensors' states (live or from history) into a sample."""
+
+        def read(key: str, parse):
+            entity_id = self.config.get(key)
+            return parse(get(entity_id)) if entity_id else None
+
+        price = read(CONF_PRICE, _per_kwh)
         if price is not None:
             price += self.config.get(CONF_PRICE_SURCHARGE) or 0
             price *= 1 + (self.config.get(CONF_VAT) or 0) / 100
-        feed_in = self._read(CONF_FEED_IN_PRICE, _per_kwh)
-        grid = self._read(CONF_GRID_POWER, _kw)
+        feed_in = read(CONF_FEED_IN_PRICE, _per_kwh)
+        grid = read(CONF_GRID_POWER, _kw)
 
-        charge = self._read(CONF_CHARGE_POWER, _kw)
+        charge = read(CONF_CHARGE_POWER, _kw)
         if self.config.get(CONF_DISCHARGE_POWER):
-            discharge = self._read(CONF_DISCHARGE_POWER, _kw)
+            discharge = read(CONF_DISCHARGE_POWER, _kw)
             charge = abs(charge) if charge is not None else None
             discharge = abs(discharge) if discharge is not None else None
         elif charge is not None:
@@ -182,14 +223,14 @@ class BatteryRoiHub:
             discharge = None
 
         # Shown on the card via the rate sensor's attributes.
-        self.live = {
+        live = {
             "price": price,
             "feed_in_price": feed_in,
             "grid_kw": grid,
-            "solar_kw": self._read(CONF_SOLAR_POWER, _kw),
-            "soc": self._read(CONF_SOC, _float),
+            "solar_kw": read(CONF_SOLAR_POWER, _kw),
+            "soc": read(CONF_SOC, _float),
         }
-        self.live = {k: None if v is None else round(v, 4) for k, v in self.live.items()}
+        live = {k: None if v is None else round(v, 4) for k, v in live.items()}
 
         sample = None
         if None not in (charge, discharge, price):
@@ -201,6 +242,26 @@ class BatteryRoiHub:
                 standby_kw=(self.config.get(CONF_STANDBY_POWER) or 0) / 1000,
                 wear_per_kwh=self.config.get(CONF_WEAR_COST) or 0,
             )
-        self.acc.update(dt_util.now(), sample)
-        self.store.async_delay_save(self.acc.as_dict, 60)
-        async_dispatcher_send(self.hass, self.signal)
+        return sample, live
+
+
+def _backfill_message(hass: HomeAssistant, first: datetime | None, start: datetime) -> str:
+    nl = hass.config.language.startswith("nl")
+    if first is None:
+        return (
+            "Battery ROI vond geen bruikbare geschiedenis voor de gekozen sensoren. De totalen beginnen vanaf nu."
+            if nl
+            else "Battery ROI found no usable history for the chosen sensors. Totals start from now."
+        )
+    day = dt_util.as_local(first).date().isoformat()
+    if first - start > timedelta(days=1):
+        return (
+            f"Battery ROI heeft de totalen ingevuld vanaf {day}. Oudere geschiedenis was niet beschikbaar."
+            if nl
+            else f"Battery ROI filled in the totals from {day}. Older history was not available."
+        )
+    return (
+        f"Battery ROI heeft de totalen ingevuld vanaf {day}."
+        if nl
+        else f"Battery ROI filled in the totals from {day}."
+    )

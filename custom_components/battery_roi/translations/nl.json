@@ -57,12 +57,14 @@
             "data": {
               "standby_power": "Sluipverbruik batterij",
               "wear_cost": "Slijtage per ontladen kWh",
-              "battery_cost": "Aanschafprijs batterij"
+              "battery_cost": "Aanschafprijs batterij",
+              "install_date": "Batterij geïnstalleerd op"
             },
             "data_description": {
               "standby_power": "Wat de batterij zelf gebruikt (omvormer, BMS) en niet in de vermogenssensoren zit. Leeg laten als je laadsensor het al meetelt.",
               "wear_cost": "Degradatie in EUR per geleverde kWh: aanschafprijs ÷ (capaciteit × aantal cycli). Eén keer per kWh geteld.",
-              "battery_cost": "Voegt een terugverdientijd-sensor toe."
+              "battery_cost": "Voegt een terugverdientijd-sensor toe.",
+              "install_date": "Vult de totalen in vanuit de geschiedenis van Home Assistant, vanaf deze dag. Gedetailleerde geschiedenis gaat meestal 10 dagen terug; daarvoor worden uurgemiddelden gebruikt als je sensoren langetermijnstatistieken bijhouden. Vervangt de huidige totalen."
             }
           }
         }
@@ -133,12 +135,14 @@
             "data": {
               "standby_power": "Sluipverbruik batterij",
               "wear_cost": "Slijtage per ontladen kWh",
-              "battery_cost": "Aanschafprijs batterij"
+              "battery_cost": "Aanschafprijs batterij",
+              "install_date": "Batterij geïnstalleerd op"
             },
             "data_description": {
               "standby_power": "Wat de batterij zelf gebruikt (omvormer, BMS) en niet in de vermogenssensoren zit. Leeg laten als je laadsensor het al meetelt.",
               "wear_cost": "Degradatie in EUR per geleverde kWh: aanschafprijs ÷ (capaciteit × aantal cycli). Eén keer per kWh geteld.",
-              "battery_cost": "Voegt een terugverdientijd-sensor toe."
+              "battery_cost": "Voegt een terugverdientijd-sensor toe.",
+              "install_date": "Vult de totalen in vanuit de geschiedenis van Home Assistant, vanaf deze dag. Gedetailleerde geschiedenis gaat meestal 10 dagen terug; daarvoor worden uurgemiddelden gebruikt als je sensoren langetermijnstatistieken bijhouden. Vervangt de huidige totalen."
             }
           }
         }

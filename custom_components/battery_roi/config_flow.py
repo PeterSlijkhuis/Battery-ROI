@@ -19,6 +19,7 @@ from .const import (
     CONF_DISCHARGE_POWER,
     CONF_FEED_IN_PRICE,
     CONF_GRID_POWER,
+    CONF_INSTALL_DATE,
     CONF_POSITIVE_MEANS,
     CONF_PRICE,
     CONF_PRICE_SURCHARGE,
@@ -76,6 +77,7 @@ SECTIONS: dict[str, tuple[bool, dict]] = {
         vol.Optional(CONF_STANDBY_POWER): _number("W", 1, 1000),
         vol.Optional(CONF_WEAR_COST): _number(maximum=1),
         vol.Optional(CONF_BATTERY_COST): _number(step=1),
+        vol.Optional(CONF_INSTALL_DATE): selector.DateSelector(),
     }),
 }
 

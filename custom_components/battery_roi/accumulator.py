@@ -32,6 +32,7 @@ class Totals:
     day: str | None = None
     month_key: str | None = None
     since: str | None = None
+    backfilled_from: str | None = None  # install date the history was replayed from
 
 
 @dataclass(frozen=True)

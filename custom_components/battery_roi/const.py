@@ -1,7 +1,7 @@
 """Constants for Battery ROI."""
 
 DOMAIN = "battery_roi"
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 CONF_CHARGE_POWER = "charge_power"
 CONF_DISCHARGE_POWER = "discharge_power"
@@ -16,6 +16,7 @@ CONF_SOC = "soc"
 CONF_BATTERY_COST = "battery_cost"
 CONF_STANDBY_POWER = "standby_power"
 CONF_WEAR_COST = "wear_cost"
+CONF_INSTALL_DATE = "install_date"
 
 POSITIVE_CHARGING = "charging"
 POSITIVE_DISCHARGING = "discharging"

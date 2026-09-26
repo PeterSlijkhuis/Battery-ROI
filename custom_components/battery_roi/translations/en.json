@@ -57,12 +57,14 @@
             "data": {
               "standby_power": "Battery standby power",
               "wear_cost": "Wear cost per kWh discharged",
-              "battery_cost": "Battery purchase cost"
+              "battery_cost": "Battery purchase cost",
+              "install_date": "Battery installed on"
             },
             "data_description": {
               "standby_power": "What the battery uses itself (inverter, BMS) that its power sensors don't show. Leave empty if your charge sensor already includes it.",
               "wear_cost": "Degradation in EUR per kWh delivered: purchase cost ÷ (capacity × rated cycles). Counted once per kWh.",
-              "battery_cost": "Adds a payback sensor."
+              "battery_cost": "Adds a payback sensor.",
+              "install_date": "Fills in the totals from Home Assistant's history, starting this day. Detailed history usually covers the last 10 days; before that, hourly averages are used where your sensors keep long-term statistics. Replaces the current totals."
             }
           }
         }
@@ -133,12 +135,14 @@
             "data": {
               "standby_power": "Battery standby power",
               "wear_cost": "Wear cost per kWh discharged",
-              "battery_cost": "Battery purchase cost"
+              "battery_cost": "Battery purchase cost",
+              "install_date": "Battery installed on"
             },
             "data_description": {
               "standby_power": "What the battery uses itself (inverter, BMS) that its power sensors don't show. Leave empty if your charge sensor already includes it.",
               "wear_cost": "Degradation in EUR per kWh delivered: purchase cost ÷ (capacity × rated cycles). Counted once per kWh.",
-              "battery_cost": "Adds a payback sensor."
+              "battery_cost": "Adds a payback sensor.",
+              "install_date": "Fills in the totals from Home Assistant's history, starting this day. Detailed history usually covers the last 10 days; before that, hourly averages are used where your sensors keep long-term statistics. Replaces the current totals."
             }
           }
         }

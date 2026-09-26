@@ -151,6 +151,7 @@ All fields explained:
 | Battery costs | Standby power | | Watts the battery uses itself that its power sensors miss |
 | | Wear cost per kWh discharged | | Purchase price ÷ (capacity in kWh × rated cycles) |
 | | Purchase cost | | What the battery cost you; adds a payback sensor |
+| | Battery installed on | | Fills in the totals from Home Assistant's history from this day on, see [Start from your install date](#start-from-your-install-date) |
 
 > **Tibber, Frank Energie, Zonneplan** sensors already include tax and VAT: leave *Extra cost* and *VAT* empty.
 
@@ -167,7 +168,7 @@ Prefer YAML? Add a **Manual** card with:
 type: custom:battery-roi-card
 ```
 
-The numbers start at €0 from the moment you finish step 4. Read the next section before you judge them.
+The numbers start at €0 from the moment you finish step 4, unless you filled in *Battery installed on*. Read the next section before you judge them.
 
 ## Your first day: why the numbers look odd
 
@@ -215,11 +216,28 @@ Tap a tile or the ticker to see its history graph.
 | I want to… | Where |
 | --- | --- |
 | Change which sensors are used | **Settings → Devices & services → Battery ROI → Configure** (your totals are kept) |
+| Fill in history from the day you got the battery | **Configure** → *Battery costs* → **Battery installed on**, see below |
 | Start the totals from zero | **Settings → Devices & services → Battery ROI → device → Reset totals → Press** |
 | See all Battery ROI numbers | **Settings → Devices & services → Battery ROI → device** |
 | See a number's history | Tap it on the card |
 | Change what the card shows | Edit the dashboard → click the card → **Edit** |
 | Update to a new version | **Settings** lists an update for **Battery ROI** at the top → click it → **Install**, then restart (step 3). The card then shows an orange *Battery ROI was updated* bar: tap it once to load the new card |
+
+### Start from your install date
+
+Had the battery before you installed Battery ROI? Fill in **Battery installed on** (in setup, or later via **Configure** → *Battery costs*). Battery ROI then replays Home Assistant's own history from that day and fills in Today, This month, Lifetime, energy and payback. A notification tells you when it's done and from which day it found data.
+
+How far back it can go depends on what Home Assistant kept:
+
+| Period | What Battery ROI uses | Accuracy |
+| --- | --- | --- |
+| Last ~10 days (the recorder's default) | Every recorded sensor change | Same as live tracking |
+| Older | Hourly averages from long-term statistics | Close, but prices and power inside an hour are averaged |
+| Before your sensors existed in Home Assistant | Nothing | Not counted |
+
+- Long-term statistics only exist for sensors with a *state class*. Most battery power sensors have one; some price sensors don't, and hours without a price are skipped.
+- Hours when Home Assistant was off are skipped rather than guessed.
+- The replay **replaces** the current totals. It runs once per date; change the date to run it again.
 
 **Numbers look wrong?**
 
@@ -318,7 +336,7 @@ State of charge moves in whole percents and hides charging losses, so a 5 kWh ba
 <details>
 <summary><b>The numbers start at zero. Can I import history?</b></summary>
 
-Not yet. Tracking starts when you set up the integration.
+Yes, see [Start from your install date](#start-from-your-install-date).
 </details>
 
 <details>
