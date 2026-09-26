@@ -32,11 +32,11 @@
               "price": "Electricity price sensor (dynamic)",
               "price_surcharge": "Extra cost per kWh, excluding VAT",
               "vat": "VAT",
-              "price_fixed": "Fixed price",
-              "price_night": "Night price",
-              "night_start": "Night price from",
-              "night_end": "Night price until",
-              "night_weekend": "Night price all weekend",
+              "price_fixed": "Peak price",
+              "price_night": "Off-peak price",
+              "night_start": "Off-peak from",
+              "night_end": "Off-peak until",
+              "night_weekend": "Off-peak all weekend",
               "feed_in_price": "Feed-in price sensor",
               "feed_in_fixed": "Fixed feed-in price",
               "net_metering_until": "Net metering until"
@@ -45,11 +45,11 @@
               "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically. Leave empty if you have a fixed tariff.",
               "price_surcharge": "Only for raw market prices (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh. Leave empty for all-in prices such as Tibber.",
               "vat": "Only for raw market prices: applied to price + extra cost. 21 in the Netherlands. Leave empty for all-in prices.",
-              "price_fixed": "All-in price per kWh for a fixed contract, or the day price of a day/night contract. Also used when the price sensor is unavailable.",
-              "price_night": "Only for a day/night contract: the all-in night price per kWh.",
-              "night_start": "When the night price starts.",
-              "night_end": "When the night price ends.",
-              "night_weekend": "Many day/night contracts charge the night price from Friday night until Monday morning.",
+              "price_fixed": "All-in price per kWh. On a single-rate contract, enter your price here and leave off-peak empty. Also used when the price sensor is unavailable.",
+              "price_night": "Only for a peak/off-peak contract: the all-in off-peak price per kWh.",
+              "night_start": "When the off-peak price starts.",
+              "night_end": "When the off-peak price ends.",
+              "night_weekend": "Many peak/off-peak contracts charge the off-peak price from Friday night until Monday morning.",
               "feed_in_price": "What you get per exported kWh. On many dynamic contracts that is the same market price sensor as above. Only used together with grid power: then solar that goes into the battery costs what you would have been paid for exporting it, and grid charging costs the import price.",
               "feed_in_fixed": "Use this instead of a sensor when you get a fixed amount per exported kWh (0 if you get nothing).",
               "net_metering_until": "Until this day an exported kWh is worth the full import price (net metering), so the feed-in price is ignored. Set it once and the switch happens by itself. Leave empty if you have no net metering."
@@ -86,7 +86,7 @@
     },
     "error": {
       "same_sensor": "Charge and discharge power must be different sensors.",
-      "no_price": "Pick a price sensor or enter a fixed price."
+      "no_price": "Pick a price sensor or enter a peak price."
     },
     "abort": {
       "single_instance_allowed": "Battery ROI is already set up. Use Configure to change sensors."
@@ -125,11 +125,11 @@
               "price": "Electricity price sensor (dynamic)",
               "price_surcharge": "Extra cost per kWh, excluding VAT",
               "vat": "VAT",
-              "price_fixed": "Fixed price",
-              "price_night": "Night price",
-              "night_start": "Night price from",
-              "night_end": "Night price until",
-              "night_weekend": "Night price all weekend",
+              "price_fixed": "Peak price",
+              "price_night": "Off-peak price",
+              "night_start": "Off-peak from",
+              "night_end": "Off-peak until",
+              "night_weekend": "Off-peak all weekend",
               "feed_in_price": "Feed-in price sensor",
               "feed_in_fixed": "Fixed feed-in price",
               "net_metering_until": "Net metering until"
@@ -138,11 +138,11 @@
               "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically. Leave empty if you have a fixed tariff.",
               "price_surcharge": "Only for raw market prices (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh. Leave empty for all-in prices such as Tibber.",
               "vat": "Only for raw market prices: applied to price + extra cost. 21 in the Netherlands. Leave empty for all-in prices.",
-              "price_fixed": "All-in price per kWh for a fixed contract, or the day price of a day/night contract. Also used when the price sensor is unavailable.",
-              "price_night": "Only for a day/night contract: the all-in night price per kWh.",
-              "night_start": "When the night price starts.",
-              "night_end": "When the night price ends.",
-              "night_weekend": "Many day/night contracts charge the night price from Friday night until Monday morning.",
+              "price_fixed": "All-in price per kWh. On a single-rate contract, enter your price here and leave off-peak empty. Also used when the price sensor is unavailable.",
+              "price_night": "Only for a peak/off-peak contract: the all-in off-peak price per kWh.",
+              "night_start": "When the off-peak price starts.",
+              "night_end": "When the off-peak price ends.",
+              "night_weekend": "Many peak/off-peak contracts charge the off-peak price from Friday night until Monday morning.",
               "feed_in_price": "What you get per exported kWh. On many dynamic contracts that is the same market price sensor as above. Only used together with grid power: then solar that goes into the battery costs what you would have been paid for exporting it, and grid charging costs the import price.",
               "feed_in_fixed": "Use this instead of a sensor when you get a fixed amount per exported kWh (0 if you get nothing).",
               "net_metering_until": "Until this day an exported kWh is worth the full import price (net metering), so the feed-in price is ignored. Set it once and the switch happens by itself. Leave empty if you have no net metering."
@@ -179,7 +179,7 @@
     },
     "error": {
       "same_sensor": "Charge and discharge power must be different sensors.",
-      "no_price": "Pick a price sensor or enter a fixed price."
+      "no_price": "Pick a price sensor or enter a peak price."
     }
   },
   "selector": {
