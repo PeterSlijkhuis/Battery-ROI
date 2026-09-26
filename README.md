@@ -200,6 +200,7 @@ Some numbers stay **Unknown** at first, on purpose:
 | Part of the card | Meaning |
 | --- | --- |
 | **Today** / **This month** tiles | Profit so far, with *Yesterday* / *Last month* underneath for comparison |
+| **Lifetime** tile | Everything the battery has earned since you set up Battery ROI (or last pressed *Reset totals*), with the start date underneath |
 | Arrow and color | Green arrow up = earned money, red arrow down = cost money, grey = (about) zero |
 | *Earning / Spending / Idle €…/h* | What the battery earns or costs **right now**, per hour |
 | Price, ☀ kW, 🔋 % | Current price per kWh, solar production and battery level (only if you set those sensors) |
@@ -237,6 +238,7 @@ The visual editor covers everything. For YAML, all keys are optional:
 | `title` | `Battery ROI` |
 | `daily` | `sensor.battery_roi_profit_today` |
 | `monthly` | `sensor.battery_roi_profit_this_month` |
+| `total` | `sensor.battery_roi_profit_total` (the Lifetime tile) |
 | `rate` | `sensor.battery_roi_rate` |
 | `payback` | `sensor.battery_roi_payback` |
 | `efficiency` | `sensor.battery_roi_efficiency` |
@@ -257,7 +259,7 @@ The **pace** line projects this month's profit to a full month, using the exact 
 | `sensor.battery_roi_rate` | €/h right now. Positive = earning. Attributes: price, feed-in price, grid kW, solar kW, state of charge |
 | `sensor.battery_roi_profit_today` | Profit today, `last_period` = yesterday |
 | `sensor.battery_roi_profit_this_month` | Profit this month, `last_period` = last month |
-| `sensor.battery_roi_profit_total` | Profit since setup |
+| `sensor.battery_roi_profit_total` | Profit since setup, `tracking_since` = start date |
 | `sensor.battery_roi_energy_charged` | kWh into the battery |
 | `sensor.battery_roi_energy_discharged` | kWh out of the battery |
 | `sensor.battery_roi_efficiency` | Discharged ÷ charged, shown after 1 kWh |

@@ -87,6 +87,7 @@ async def test_options_change_keeps_totals(hass: HomeAssistant, freezer) -> None
     await _run(hass, freezer, timedelta(minutes=10))
     before = float(hass.states.get("sensor.battery_roi_profit_total").state)
     assert before == pytest.approx(0.02)
+    assert hass.states.get("sensor.battery_roi_profit_total").attributes["tracking_since"]
 
     entry = hass.config_entries.async_entries(DOMAIN)[0]
     result = await hass.config_entries.options.async_init(entry.entry_id)

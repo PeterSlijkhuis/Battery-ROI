@@ -42,7 +42,11 @@ async def async_setup_entry(
             unit=f"{currency}/h", state_class=SensorStateClass.MEASUREMENT, icon="mdi:cash-sync",
             precision=2,
         ),
-        money("profit_total", "Profit total", lambda: _round(hub.acc.totals.profit)),
+        money(
+            "profit_total", "Profit total",
+            lambda: _round(hub.acc.totals.profit),
+            lambda: {"tracking_since": hub.acc.totals.since},
+        ),
         money(
             "profit_today", "Profit today",
             lambda: _round(hub.acc.totals.today),
