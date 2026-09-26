@@ -179,6 +179,7 @@ class BatteryRoiHub:
             "solar_kw": self._read(CONF_SOLAR_POWER, _kw),
             "soc": self._read(CONF_SOC, _float),
         }
+        self.live = {k: None if v is None else round(v, 4) for k, v in self.live.items()}
 
         sample = None
         if None not in (charge, discharge, price):
