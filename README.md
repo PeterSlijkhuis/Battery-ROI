@@ -102,7 +102,8 @@ Click the button above and choose your Home Assistant, **or** do it by hand:
 1. Open **HACS** in the sidebar.
 2. Click **⋮** (top right) → **Custom repositories**.
 3. Paste `https://github.com/PeterSlijkhuis/Battery-ROI`, pick type **Integration**, click **Add**.
-4. Search HACS for **Battery ROI**, open it, click **Download** (bottom right) → **Download**.
+4. Search HACS for **Battery ROI**, open it, click **Download** (bottom right).
+5. HACS asks which version: keep the newest (for example `v0.2.1`) and click **Download**.
 
 <details>
 <summary>No HACS? Install by hand</summary>
@@ -114,7 +115,7 @@ Copy the folder `custom_components/battery_roi` from this repository into `/conf
 
 1. Go to **Settings → System**.
 2. Click the **power icon** (top right) → **Restart Home Assistant** → **Restart**.
-3. Wait until Home Assistant is back (about a minute), then **refresh your browser** (Ctrl+F5 / pull down on mobile) so the card loads.
+3. Wait until Home Assistant is back (about a minute), then **refresh your browser** (Ctrl+F5). In the phone app: close the app completely and open it again. Without this the card won't show up in step 5.
 
 ### Step 4 · Add the integration and pick your sensors
 
@@ -156,9 +157,9 @@ All fields explained:
 ### Step 5 · Put the card on your dashboard
 
 1. Open the dashboard where you want the card.
-2. Click the **pencil** (top right) to edit. On a brand-new dashboard you may first need **⋮ → Take control**.
-3. Click **+ Add card**, search for **Battery ROI**, and click it.
-4. Click **Save**. Done.
+2. Click the **pencil** (top right) to edit. On the default *Overview* dashboard Home Assistant first asks you to **Take control**; confirm it.
+3. Click **+ Add card** (bottom right), type **Battery ROI** in the search box, and click the card.
+4. The card already points at the right sensors, so there is nothing to fill in. Click **Save**, then **Done** (top right).
 
 Prefer YAML? Add a **Manual** card with:
 
@@ -166,7 +167,47 @@ Prefer YAML? Add a **Manual** card with:
 type: custom:battery-roi-card
 ```
 
-The numbers start at €0 and grow from the moment you finish step 4.
+The numbers start at €0 from the moment you finish step 4. Read the next section before you judge them.
+
+## Your first day: why the numbers look odd
+
+Battery ROI books money **when it happens**. Charging costs money right away; the payoff only arrives when the battery discharges later at a higher price. So a normal first day looks like this:
+
+| When | What you see | Why |
+| --- | --- | --- |
+| Battery charging (night, cheap hours, or solar) | Profit slightly **negative**, red arrow, *Spending €0.03/h* | You paid for energy that is now sitting in the battery |
+| Battery full, waiting | Profit stays put, *Idle* | Nothing flows, nothing is booked (except standby power, if you entered it) |
+| Battery discharging (evening peak) | Profit climbs, turns **positive**, green arrow, *Earning* | Every kWh out replaces a kWh you would have bought at the high price |
+| End of the day | *Today* is the day's real result; tomorrow it moves to *Yesterday* | |
+
+Some numbers stay **Unknown** at first, on purpose:
+
+| Sensor | Shows up when | Why wait |
+| --- | --- | --- |
+| Efficiency | 1 kWh has been charged | Smaller amounts give meaningless percentages |
+| Payback | You entered a purchase cost, 7 days have passed **and** profit is positive | One day says nothing about a year |
+| Pace | From the 2nd of the month | A projection from a few hours is noise |
+
+**Judge the battery on a full day, and better on a full week.** A single charge without a discharge will always be red.
+
+## Reading the card
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/card-dark.png">
+  <img alt="Battery ROI card" src="docs/card-light.png" width="420">
+</picture>
+
+| Part of the card | Meaning |
+| --- | --- |
+| **Today** / **This month** tiles | Profit so far, with *Yesterday* / *Last month* underneath for comparison |
+| Arrow and color | Green arrow up = earned money, red arrow down = cost money, grey = (about) zero |
+| *Earning / Spending / Idle €…/h* | What the battery earns or costs **right now**, per hour |
+| Price, ☀ kW, 🔋 % | Current price per kWh, solar production and battery level (only if you set those sensors) |
+| Pace | This month's profit projected to a full month |
+| Payback | Years until the battery has paid for itself at the rate so far |
+| Efficiency | kWh out ÷ kWh in; 80 to 90% is normal for home batteries |
+
+Tap a tile or the ticker to see its history graph.
 
 ## After setup
 
@@ -177,11 +218,12 @@ The numbers start at €0 and grow from the moment you finish step 4.
 | See all Battery ROI numbers | **Settings → Devices & services → Battery ROI → device** |
 | See a number's history | Tap it on the card |
 | Change what the card shows | Edit the dashboard → click the card → **Edit** |
-| Update to a new version | **HACS → Battery ROI → ⋮ → Redownload**, then restart (step 3) |
+| Update to a new version | **Settings** lists an update for **Battery ROI** at the top → click it → **Install**, then restart (step 3) |
 
 **Numbers look wrong?**
 
-- *Profit goes down while the battery clearly earns money* → the sign is flipped. Change **Positive power means** (step 4 via Configure), or check your grid power sensor, then **Reset totals**.
+- *Profit is negative on day one* → normal while the battery is charging, see [Your first day](#your-first-day-why-the-numbers-look-odd).
+- *Profit goes down while the battery is **discharging*** → the sign is flipped. Change **Positive power means** (step 4 via Configure), or check your grid power sensor, then **Reset totals**.
 - *Profit is far too small or large* → check the price sensor's unit (EUR/kWh, ct/kWh and EUR/MWh are handled) and that *Extra cost* is only filled in for raw market prices.
 - *Card says Battery ROI isn't set up* → finish step 4, then refresh the browser.
 - *Card doesn't appear in the card list* → refresh the browser (Ctrl+F5); on the phone app, close and reopen it.
@@ -219,7 +261,7 @@ The **pace** line projects this month's profit to a full month, using the exact 
 | `sensor.battery_roi_energy_charged` | kWh into the battery |
 | `sensor.battery_roi_energy_discharged` | kWh out of the battery |
 | `sensor.battery_roi_efficiency` | Discharged ÷ charged, shown after 1 kWh |
-| `sensor.battery_roi_payback` | Years until the battery has paid for itself at the average rate so far, shown after 7 days |
+| `sensor.battery_roi_payback` | Years until the battery has paid for itself at the average rate so far. Only exists if you entered a purchase cost; shown after 7 days with positive profit |
 | `button.battery_roi_reset_totals` | Start all totals from zero |
 
 Totals survive restarts. Gaps longer than 15 minutes (Home Assistant down, sensor offline) are skipped rather than guessed.
