@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🔋💶 Battery ROI
+<img src="custom_components/battery_roi/brand/icon.png" alt="" width="96">
+
+# Battery ROI
 
 **How much money did your home battery actually make today?**
 
@@ -9,7 +11,7 @@ A Home Assistant integration that multiplies every kWh your battery charges and 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5?logo=homeassistantcommunitystore&logoColor=white)](https://hacs.xyz/docs/faq/custom_repositories/)
 [![Home Assistant 2024.11+](https://img.shields.io/badge/Home%20Assistant-2024.11%2B-18BCF2?logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
 [![CI](https://github.com/PeterSlijkhuis/Battery-ROI/actions/workflows/ci.yml/badge.svg)](https://github.com/PeterSlijkhuis/Battery-ROI/actions/workflows/ci.yml)
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/github/v/release/PeterSlijkhuis/Battery-ROI)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=PeterSlijkhuis&repository=Battery-ROI&category=integration)
@@ -255,6 +257,13 @@ Included: round-trip losses, because you charge more kWh than you get back. Opti
 > **Tip for raw EPEX prices:** they exclude energy tax, supplier fee and VAT. Fill in *Extra cost per kWh* and *VAT*: the import price becomes (market price + extra cost) × (1 + VAT).
 
 ## FAQ
+
+<details>
+<summary><b>Why do I see "icon not available" instead of the Battery ROI icon?</b></summary>
+
+The icon ships inside the integration, which Home Assistant supports from version 2026.3. On older versions the icon stays empty; everything else works.
+
+</details>
 
 <details>
 <summary><b>Why not just use the battery's state of charge?</b></summary>
