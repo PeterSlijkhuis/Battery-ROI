@@ -20,6 +20,8 @@ A Home Assistant integration that multiplies every kWh your battery charges and 
   <img alt="Battery ROI card showing today's and this month's profit with trend arrows" src="docs/card-light.png" width="520">
 </picture>
 
+**[Setup in 5 steps](#step-by-step-setup)** · [Troubleshooting](#after-setup) · [How profit is calculated](#how-profit-is-calculated)
+
 </div>
 
 ---
@@ -52,56 +54,127 @@ Standard energy dashboards show kWh. With dynamic prices (EPEX, Nordpool, Tibber
 
 No extra Python packages are installed. The card's only library, [Lit](https://lit.dev), is bundled.
 
-## Installation
+## Step-by-step setup
 
-### HACS (recommended)
+Five steps, about 10 minutes. Every step says exactly where to click in Home Assistant.
 
-1. Click **Open in HACS** above, or in HACS go to ⋮ → **Custom repositories**, add `https://github.com/PeterSlijkhuis/Battery-ROI` with category **Integration**.
-2. Download **Battery ROI** and restart Home Assistant.
-3. Click **Add integration** above, or go to **Settings → Devices & services → Add integration → Battery ROI**.
+> **Before you start:** you need [HACS](https://hacs.xyz/docs/use/) installed, and your battery and price sensors must already exist in Home Assistant (for example from the EcoFlow, HomeWizard, Tibber or Nordpool integrations).
 
-### Manual
+### Step 1 · Find your sensors
 
-Copy `custom_components/battery_roi` into your `<config>/custom_components/` folder and restart Home Assistant.
+Write down the names of the sensors you'll pick in step 4.
 
-## Setup
+1. Go to **Settings → Devices & services → Entities** (tab at the top).
+2. Type in the search box to find each one:
 
-Pick your sensors. Only battery power and price are required; the optional sections start folded.
+| You need | Search for | What it looks like |
+| --- | --- | --- |
+| Battery charge power *(required)* | `ecoflow` + `power` | Watts that go **into** the battery. Some batteries have one sensor that is positive while charging and negative while discharging; that's fine |
+| Battery discharge power | `ecoflow` + `power` | Watts that come **out of** the battery. Skip if the sensor above is signed |
+| Electricity price *(required)* | `price`, `tibber`, `nordpool`, `epex` | Your current price per kWh |
+| Grid power *(recommended)* | `p1` + `power` | HomeWizard P1: watts from (+) or to (−) the grid |
+| Feed-in price *(recommended)* | `price` | What you get per exported kWh. With a dynamic contract this is often the same price sensor |
+| Solar production | `solar`, `envoy`, `inverter` | Watts your panels produce right now |
+| Battery level | `ecoflow` + `level`, `soc` | Battery % |
+
+> **Not sure which way a signed sensor goes?** Open it (click the name) while the battery is charging. Positive number = "positive means charging".
+
+### Step 2 · Install Battery ROI with HACS
+
+[![Open in HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=PeterSlijkhuis&repository=Battery-ROI&category=integration)
+
+Click the button above and choose your Home Assistant, **or** do it by hand:
+
+1. Open **HACS** in the sidebar.
+2. Click **⋮** (top right) → **Custom repositories**.
+3. Paste `https://github.com/PeterSlijkhuis/Battery-ROI`, pick type **Integration**, click **Add**.
+4. Search HACS for **Battery ROI**, open it, click **Download** (bottom right) → **Download**.
+
+<details>
+<summary>No HACS? Install by hand</summary>
+
+Copy the folder `custom_components/battery_roi` from this repository into `/config/custom_components/` on your Home Assistant (for example with the *File editor* or *Samba* add-on), so you end up with `/config/custom_components/battery_roi/manifest.json`.
+</details>
+
+### Step 3 · Restart Home Assistant
+
+1. Go to **Settings → System**.
+2. Click the **power icon** (top right) → **Restart Home Assistant** → **Restart**.
+3. Wait until Home Assistant is back (about a minute), then **refresh your browser** (Ctrl+F5 / pull down on mobile) so the card loads.
+
+### Step 4 · Add the integration and pick your sensors
+
+[![Add integration](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=battery_roi)
+
+Click the button above, **or**:
+
+1. Go to **Settings → Devices & services**.
+2. Click **+ Add integration** (bottom right).
+3. Search for **Battery ROI** and click it.
+4. Fill in the form with the sensors from step 1. Only the two fields marked required are needed; open the folded sections for more accuracy.
+5. Click **Submit**.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/setup-dark.png">
   <img alt="Battery ROI setup screen" src="docs/setup-light.png" width="420">
 </picture>
 
-| Section | Field | Required | Examples |
+All fields explained:
+
+| Section | Field | Required | What to enter |
 | --- | --- | :---: | --- |
-| Battery | Charge power | ✅ | EcoFlow input power, or one signed battery power sensor |
-| | Discharge power | | EcoFlow output power. Leave empty when the field above is signed |
-| | Positive power means | | Charging or discharging, for a signed sensor |
-| | State of charge | | Shown on the card |
-| Prices | Electricity price (import) | ✅ | EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan |
-| | Extra cost per kWh, excl. VAT | | Raw market prices only: energy tax + supplier fee |
-| | VAT % | | Raw market prices only: 21 in the Netherlands |
-| | Feed-in price | | What you get per exported kWh. Often the same market price sensor |
+| Battery | Charge power | ✅ | Power into the battery, or one signed battery power sensor |
+| | Discharge power | | Power out of the battery. Leave empty when the field above is signed |
+| | Positive power means | | Only for a signed sensor: does positive mean charging or discharging? |
+| | State of charge | | Battery %, shown on the card |
+| Prices | Electricity price (import) | ✅ | EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… |
+| | Extra cost per kWh, excl. VAT | | **Only for raw market prices** (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh |
+| | VAT % | | **Only for raw market prices**: 21 in the Netherlands |
+| | Feed-in price | | What you get per exported kWh |
 | Grid and solar | Grid power (P1) | | HomeWizard P1 active power, + import / − export |
 | | Solar production | | Shown on the card |
-| Battery costs | Standby power | | W the battery uses itself that its power sensors miss |
-| | Wear cost per kWh discharged | | Price ÷ (capacity × rated cycles) |
-| | Purchase cost | | Adds a payback sensor |
+| Battery costs | Standby power | | Watts the battery uses itself that its power sensors miss |
+| | Wear cost per kWh discharged | | Purchase price ÷ (capacity in kWh × rated cycles) |
+| | Purchase cost | | What the battery cost you; adds a payback sensor |
 
-To change sensors later: **Settings → Devices & services → Battery ROI → Configure**.
+> **Tibber, Frank Energie, Zonneplan** sensors already include tax and VAT: leave *Extra cost* and *VAT* empty.
 
-**Got the sign wrong?** If profit drops while the battery is clearly earning, flip *Positive power means* (or check your P1 sensor's sign), then press **Reset totals** on the Battery ROI device to start the books again.
+### Step 5 · Put the card on your dashboard
 
-## The card
+1. Open the dashboard where you want the card.
+2. Click the **pencil** (top right) to edit. On a brand-new dashboard you may first need **⋮ → Take control**.
+3. Click **+ Add card**, search for **Battery ROI**, and click it.
+4. Click **Save**. Done.
 
-The integration loads the card for you. Add it to any dashboard:
+Prefer YAML? Add a **Manual** card with:
 
 ```yaml
 type: custom:battery-roi-card
 ```
 
-That's all. Use the visual editor, or set any of these optional keys:
+The numbers start at €0 and grow from the moment you finish step 4.
+
+## After setup
+
+| I want to… | Where |
+| --- | --- |
+| Change which sensors are used | **Settings → Devices & services → Battery ROI → Configure** (your totals are kept) |
+| Start the totals from zero | **Settings → Devices & services → Battery ROI → device → Reset totals → Press** |
+| See all Battery ROI numbers | **Settings → Devices & services → Battery ROI → device** |
+| See a number's history | Tap it on the card |
+| Change what the card shows | Edit the dashboard → click the card → **Edit** |
+| Update to a new version | **HACS → Battery ROI → ⋮ → Redownload**, then restart (step 3) |
+
+**Numbers look wrong?**
+
+- *Profit goes down while the battery clearly earns money* → the sign is flipped. Change **Positive power means** (step 4 via Configure), or check your P1 sensor, then **Reset totals**.
+- *Profit is far too small or large* → check the price sensor's unit (EUR/kWh, ct/kWh and EUR/MWh are handled) and that *Extra cost* is only filled in for raw market prices.
+- *Card says Battery ROI isn't set up* → finish step 4, then refresh the browser.
+- *Card doesn't appear in the card list* → refresh the browser (Ctrl+F5); on the phone app, close and reopen it.
+
+### Card options
+
+The visual editor covers everything. For YAML, all keys are optional:
 
 | Option | Default |
 | --- | --- |
@@ -114,7 +187,7 @@ That's all. Use the visual editor, or set any of these optional keys:
 | `price`, `soc` | read from the rate sensor |
 | `currency` | your Home Assistant currency |
 
-Tap a number to open its history. The **pace** line projects this month's profit to a full month, using the exact time elapsed; it stays hidden on the 1st.
+The **pace** line projects this month's profit to a full month, using the exact time elapsed; it stays hidden on the 1st.
 
 ## Sensors
 
@@ -175,12 +248,6 @@ Included: round-trip losses, because you charge more kWh than you get back. Opti
 <summary><b>Why not just use the battery's state of charge?</b></summary>
 
 State of charge moves in whole percents and hides charging losses, so a 5 kWh battery can hide 50 Wh per step. Power sensors give the real flow.
-</details>
-
-<details>
-<summary><b>My EcoFlow has one power sensor that goes negative. What do I pick?</b></summary>
-
-Pick it as **Battery charge power**, leave discharge power empty, and set **Positive power means** to whatever your sensor does.
 </details>
 
 <details>
