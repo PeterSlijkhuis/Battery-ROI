@@ -8,6 +8,7 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.components import persistent_notification
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import section
 from homeassistant.helpers import selector
@@ -104,6 +105,16 @@ def _nest(flat: Mapping[str, Any]) -> dict[str, dict]:
     }
 
 
+RELOAD_HINT = (
+    "Battery ROI is set up. To add its card, reload the page first: "
+    "press F5 in a browser, or fully close the Home Assistant app and open it again."
+)
+RELOAD_HINT_NL = (
+    "Battery ROI is ingesteld. Herlaad eerst de pagina om de kaart toe te voegen: "
+    "druk op F5 in de browser, of sluit de Home Assistant-app helemaal af en open hem opnieuw."
+)
+
+
 def _errors(data: dict[str, Any]) -> dict[str, str]:
     if data.get(CONF_DISCHARGE_POWER) == data[CONF_CHARGE_POWER]:
         return {"base": "same_sensor"}
@@ -119,6 +130,14 @@ class BatteryRoiConfigFlow(ConfigFlow, domain=DOMAIN):
             data = _flatten(user_input)
             errors = _errors(data)
             if not errors:
+                # An open dashboard only picks up the new card after a reload.
+                nl = self.hass.config.language.startswith("nl")
+                persistent_notification.async_create(
+                    self.hass,
+                    RELOAD_HINT_NL if nl else RELOAD_HINT,
+                    "Battery ROI",
+                    f"{DOMAIN}_reload",
+                )
                 return self.async_create_entry(title="Battery ROI", data=data)
         return self.async_show_form(
             step_id="user",
