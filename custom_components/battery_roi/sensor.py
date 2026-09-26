@@ -13,13 +13,13 @@ from homeassistant.components.sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfTime
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from . import BatteryRoiHub
-from .const import CONF_BATTERY_COST, DOMAIN
+from .const import CONF_BATTERY_COST, DOMAIN, VERSION
 
 
 async def async_setup_entry(
@@ -118,7 +118,10 @@ class RoiSensor(SensorEntity):
         self._attr_icon = icon
         self._attr_suggested_display_precision = precision
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)}, name="Battery ROI"
+            identifiers={(DOMAIN, entry.entry_id)},
+            name="Battery ROI",
+            sw_version=VERSION,
+            entry_type=DeviceEntryType.SERVICE,
         )
 
     async def async_added_to_hass(self) -> None:
