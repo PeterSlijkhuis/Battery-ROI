@@ -31,12 +31,15 @@ from .const import (
     CONF_PRICE_SURCHARGE,
     CONF_SOC,
     CONF_SOLAR_POWER,
+    CONF_STANDBY_POWER,
+    CONF_VAT,
+    CONF_WEAR_COST,
     DOMAIN,
     POSITIVE_CHARGING,
     VERSION,
 )
 
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.BUTTON, Platform.SENSOR]
 TICK = timedelta(seconds=30)
 # Samples keep postponing a delayed save, so also save on a fixed beat
 # in case Home Assistant stops without a clean shutdown.
@@ -144,6 +147,12 @@ class BatteryRoiHub:
     def _on_tick(self, now) -> None:
         self._sample()
 
+    async def async_reset(self) -> None:
+        """Forget all totals; tracking starts again now."""
+        self.acc = Accumulator()
+        self._sample()
+        await self.store.async_save(self.acc.as_dict())
+
     async def _on_save(self, now) -> None:
         await self.store.async_save(self.acc.as_dict())
 
@@ -156,6 +165,7 @@ class BatteryRoiHub:
         price = self._read(CONF_PRICE, _per_kwh)
         if price is not None:
             price += self.config.get(CONF_PRICE_SURCHARGE) or 0
+            price *= 1 + (self.config.get(CONF_VAT) or 0) / 100
         feed_in = self._read(CONF_FEED_IN_PRICE, _per_kwh)
         grid = self._read(CONF_GRID_POWER, _kw)
 
@@ -185,7 +195,12 @@ class BatteryRoiHub:
         if None not in (charge, discharge, price):
             # A feed-in price only helps when the grid meter says which way power flows.
             split = feed_in is not None and grid is not None
-            sample = Sample(charge, discharge, price, feed_in if split else None, grid if split else None)
+            sample = Sample(
+                charge, discharge, price,
+                feed_in if split else None, grid if split else None,
+                standby_kw=(self.config.get(CONF_STANDBY_POWER) or 0) / 1000,
+                wear_per_kwh=self.config.get(CONF_WEAR_COST) or 0,
+            )
         self.acc.update(dt_util.now(), sample)
         self.store.async_delay_save(self.acc.as_dict, 60)
         async_dispatcher_send(self.hass, self.signal)

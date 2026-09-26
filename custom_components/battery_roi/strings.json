@@ -3,30 +3,68 @@
     "step": {
       "user": {
         "title": "Battery ROI",
-        "description": "Pick the sensors from your own setup. Only battery power and price are required.",
+        "description": "Pick sensors from your own setup. Only battery power and price are required; the folded sections are optional.",
         "data": {
-          "charge_power": "Battery charge power",
-          "discharge_power": "Battery discharge power",
-          "positive_means": "Positive power means",
-          "price": "Electricity price (import)",
-          "price_surcharge": "Extra cost per kWh on top of that price",
-          "feed_in_price": "Feed-in price",
-          "grid_power": "Grid power (P1 meter)",
-          "solar_power": "Solar production",
-          "soc": "Battery state of charge",
-          "battery_cost": "Battery purchase cost"
+          "battery": "Battery",
+          "prices": "Prices",
+          "grid": "Grid and solar (recommended)",
+          "costs": "Battery costs"
         },
-        "data_description": {
-          "charge_power": "Power flowing into the battery (W or kW). If you only have one signed power sensor, pick it here and leave discharge power empty.",
-          "discharge_power": "Power flowing out of the battery. Leave empty when the sensor above is signed.",
-          "positive_means": "Only used with a single signed power sensor.",
-          "price": "Your dynamic tariff sensor, for example EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie or Zonneplan. EUR/kWh, ct/kWh and per-MWh units are converted automatically.",
-          "price_surcharge": "Optional. Use this when your price sensor is the raw market price (EPEX): add energy tax, supplier fee and VAT here, in EUR/kWh. Leave empty for Tibber and other all-in prices.",
-          "feed_in_price": "Optional. What you get for exporting a kWh. Only used together with the grid power sensor; without both, the import price is used for both directions.",
-          "grid_power": "Optional. HomeWizard P1 or another meter: positive when importing, negative when exporting. Needed to tell whether the battery avoided buying or selling.",
-          "solar_power": "Optional, shown on the card.",
-          "soc": "Optional, shown on the card.",
-          "battery_cost": "Optional. Adds a payback sensor."
+        "sections": {
+          "battery": {
+            "name": "Battery",
+            "data": {
+              "charge_power": "Battery charge power",
+              "discharge_power": "Battery discharge power",
+              "positive_means": "Positive power means",
+              "soc": "Battery state of charge"
+            },
+            "data_description": {
+              "charge_power": "Power flowing into the battery (W or kW), from any brand: EcoFlow, Zendure, Marstek, Victron, Huawei, SolarEdge… If you only have one signed power sensor, pick it here and leave discharge power empty.",
+              "discharge_power": "Power flowing out of the battery. Leave empty when the sensor above is signed.",
+              "positive_means": "Only used with a single signed power sensor. Wrong? Profit turns negative while the battery earns: flip this and press Reset totals.",
+              "soc": "Optional, shown on the card."
+            }
+          },
+          "prices": {
+            "name": "Prices",
+            "data": {
+              "price": "Electricity price (import)",
+              "price_surcharge": "Extra cost per kWh, excluding VAT",
+              "vat": "VAT",
+              "feed_in_price": "Feed-in price"
+            },
+            "data_description": {
+              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically.",
+              "price_surcharge": "Only for raw market prices (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh. Leave empty for all-in prices such as Tibber.",
+              "vat": "Only for raw market prices: applied to price + extra cost. 21 in the Netherlands. Leave empty for all-in prices.",
+              "feed_in_price": "What you get per exported kWh. On many dynamic contracts that is the same market price sensor as above. Only used together with grid power."
+            }
+          },
+          "grid": {
+            "name": "Grid and solar (recommended)",
+            "data": {
+              "grid_power": "Grid power",
+              "solar_power": "Solar production"
+            },
+            "data_description": {
+              "grid_power": "Your smart meter or energy monitor (DSMR, HomeWizard P1, Shelly EM, Tibber Pulse…): positive when importing, negative when exporting. With a feed-in price this tells whether the battery avoided buying or selling.",
+              "solar_power": "Optional, shown on the card."
+            }
+          },
+          "costs": {
+            "name": "Battery costs",
+            "data": {
+              "standby_power": "Battery standby power",
+              "wear_cost": "Wear cost per kWh discharged",
+              "battery_cost": "Battery purchase cost"
+            },
+            "data_description": {
+              "standby_power": "What the battery uses itself (inverter, BMS) that its power sensors don't show. Leave empty if your charge sensor already includes it.",
+              "wear_cost": "Degradation in EUR per kWh delivered: purchase cost ÷ (capacity × rated cycles). Counted once per kWh.",
+              "battery_cost": "Adds a payback sensor."
+            }
+          }
         }
       }
     },
@@ -43,28 +81,66 @@
         "title": "Battery ROI",
         "description": "Change the sensors. Your running totals are kept.",
         "data": {
-          "charge_power": "Battery charge power",
-          "discharge_power": "Battery discharge power",
-          "positive_means": "Positive power means",
-          "price": "Electricity price (import)",
-          "price_surcharge": "Extra cost per kWh on top of that price",
-          "feed_in_price": "Feed-in price",
-          "grid_power": "Grid power (P1 meter)",
-          "solar_power": "Solar production",
-          "soc": "Battery state of charge",
-          "battery_cost": "Battery purchase cost"
+          "battery": "Battery",
+          "prices": "Prices",
+          "grid": "Grid and solar (recommended)",
+          "costs": "Battery costs"
         },
-        "data_description": {
-          "charge_power": "Power flowing into the battery (W or kW). If you only have one signed power sensor, pick it here and leave discharge power empty.",
-          "discharge_power": "Power flowing out of the battery. Leave empty when the sensor above is signed.",
-          "positive_means": "Only used with a single signed power sensor.",
-          "price": "Your dynamic tariff sensor, for example EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie or Zonneplan. EUR/kWh, ct/kWh and per-MWh units are converted automatically.",
-          "price_surcharge": "Optional. Use this when your price sensor is the raw market price (EPEX): add energy tax, supplier fee and VAT here, in EUR/kWh. Leave empty for Tibber and other all-in prices.",
-          "feed_in_price": "Optional. What you get for exporting a kWh. Only used together with the grid power sensor; without both, the import price is used for both directions.",
-          "grid_power": "Optional. HomeWizard P1 or another meter: positive when importing, negative when exporting. Needed to tell whether the battery avoided buying or selling.",
-          "solar_power": "Optional, shown on the card.",
-          "soc": "Optional, shown on the card.",
-          "battery_cost": "Optional. Adds a payback sensor."
+        "sections": {
+          "battery": {
+            "name": "Battery",
+            "data": {
+              "charge_power": "Battery charge power",
+              "discharge_power": "Battery discharge power",
+              "positive_means": "Positive power means",
+              "soc": "Battery state of charge"
+            },
+            "data_description": {
+              "charge_power": "Power flowing into the battery (W or kW), from any brand: EcoFlow, Zendure, Marstek, Victron, Huawei, SolarEdge… If you only have one signed power sensor, pick it here and leave discharge power empty.",
+              "discharge_power": "Power flowing out of the battery. Leave empty when the sensor above is signed.",
+              "positive_means": "Only used with a single signed power sensor. Wrong? Profit turns negative while the battery earns: flip this and press Reset totals.",
+              "soc": "Optional, shown on the card."
+            }
+          },
+          "prices": {
+            "name": "Prices",
+            "data": {
+              "price": "Electricity price (import)",
+              "price_surcharge": "Extra cost per kWh, excluding VAT",
+              "vat": "VAT",
+              "feed_in_price": "Feed-in price"
+            },
+            "data_description": {
+              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically.",
+              "price_surcharge": "Only for raw market prices (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh. Leave empty for all-in prices such as Tibber.",
+              "vat": "Only for raw market prices: applied to price + extra cost. 21 in the Netherlands. Leave empty for all-in prices.",
+              "feed_in_price": "What you get per exported kWh. On many dynamic contracts that is the same market price sensor as above. Only used together with grid power."
+            }
+          },
+          "grid": {
+            "name": "Grid and solar (recommended)",
+            "data": {
+              "grid_power": "Grid power",
+              "solar_power": "Solar production"
+            },
+            "data_description": {
+              "grid_power": "Your smart meter or energy monitor (DSMR, HomeWizard P1, Shelly EM, Tibber Pulse…): positive when importing, negative when exporting. With a feed-in price this tells whether the battery avoided buying or selling.",
+              "solar_power": "Optional, shown on the card."
+            }
+          },
+          "costs": {
+            "name": "Battery costs",
+            "data": {
+              "standby_power": "Battery standby power",
+              "wear_cost": "Wear cost per kWh discharged",
+              "battery_cost": "Battery purchase cost"
+            },
+            "data_description": {
+              "standby_power": "What the battery uses itself (inverter, BMS) that its power sensors don't show. Leave empty if your charge sensor already includes it.",
+              "wear_cost": "Degradation in EUR per kWh delivered: purchase cost ÷ (capacity × rated cycles). Counted once per kWh.",
+              "battery_cost": "Adds a payback sensor."
+            }
+          }
         }
       }
     },
@@ -77,6 +153,13 @@
       "options": {
         "charging": "Charging",
         "discharging": "Discharging"
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "reset_totals": {
+        "name": "Reset totals"
       }
     }
   }

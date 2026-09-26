@@ -40,6 +40,7 @@ async def async_setup_entry(
             lambda: _round(hub.acc.rate(), 4),
             lambda: hub.live,
             unit=f"{currency}/h", state_class=SensorStateClass.MEASUREMENT, icon="mdi:cash-sync",
+            precision=2,
         ),
         money("profit_total", "Profit total", lambda: _round(hub.acc.totals.profit)),
         money(
@@ -104,6 +105,7 @@ class RoiSensor(SensorEntity):
         device_class: SensorDeviceClass | None = None,
         state_class: SensorStateClass | None = None,
         icon: str | None = None,
+        precision: int | None = None,
     ) -> None:
         self._hub = hub
         self._value = value
@@ -114,6 +116,7 @@ class RoiSensor(SensorEntity):
         self._attr_device_class = device_class
         self._attr_state_class = state_class
         self._attr_icon = icon
+        self._attr_suggested_display_precision = precision
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)}, name="Battery ROI"
         )

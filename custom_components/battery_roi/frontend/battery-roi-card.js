@@ -17,6 +17,23 @@ const DEFAULTS = {
   currency: null,
 };
 
+const TEXT = {
+  en: {
+    today: "Today", yesterday: "Yesterday", month: "This month", lastMonth: "Last month",
+    earning: "Earning", spending: "Spending", idle: "Idle",
+    pace: "Pace", perMonth: "/month", payback: "Payback", years: "y", efficiency: "Efficiency",
+    missing: "Battery ROI isn't set up yet. Add it under Settings → Devices & services.",
+  },
+  nl: {
+    today: "Vandaag", yesterday: "Gisteren", month: "Deze maand", lastMonth: "Vorige maand",
+    earning: "Verdient", spending: "Kost", idle: "Rust",
+    pace: "Tempo", perMonth: "/maand", payback: "Terugverdiend in", years: "jaar", efficiency: "Rendement",
+    missing: "Battery ROI is nog niet ingesteld. Voeg het toe via Instellingen → Apparaten & diensten.",
+  },
+};
+
+const ENTITY = { entity: { domain: "sensor" } };
+
 class BatteryRoiCard extends LitElement {
   static properties = {
     hass: { attribute: false },
@@ -25,6 +42,54 @@ class BatteryRoiCard extends LitElement {
 
   static getStubConfig() {
     return {};
+  }
+
+  // Visual editor in the dashboard UI; every field is optional.
+  static getConfigForm() {
+    return {
+      schema: [
+        { name: "title", selector: { text: {} } },
+        { name: "daily", selector: ENTITY },
+        { name: "monthly", selector: ENTITY },
+        { name: "rate", selector: ENTITY },
+        {
+          type: "expandable",
+          name: "",
+          title: "Advanced",
+          schema: [
+            { name: "payback", selector: ENTITY },
+            { name: "efficiency", selector: ENTITY },
+            { name: "price", selector: ENTITY },
+            { name: "soc", selector: ENTITY },
+            { name: "currency", selector: { text: {} } },
+          ],
+        },
+      ],
+      computeLabel: (field) =>
+        ({
+          title: "Title",
+          daily: "Profit today sensor",
+          monthly: "Profit this month sensor",
+          rate: "Rate sensor",
+          payback: "Payback sensor",
+          efficiency: "Efficiency sensor",
+          price: "Price sensor (default: from rate sensor)",
+          soc: "State of charge sensor (default: from rate sensor)",
+          currency: "Currency (default: Home Assistant's)",
+        })[field.name],
+    };
+  }
+
+  getGridOptions() {
+    return { columns: 12, min_columns: 6, rows: "auto" };
+  }
+
+  get _lang() {
+    return this.hass.locale?.language ?? this.hass.language ?? "en";
+  }
+
+  get _t() {
+    return TEXT[this._lang.split("-")[0]] ?? TEXT.en;
   }
 
   setConfig(config) {
@@ -105,6 +170,10 @@ class BatteryRoiCard extends LitElement {
   render() {
     if (!this.hass || !this._config) return nothing;
     const c = this._config;
+    const t = this._t;
+    if (!this.hass.states[c.daily]) {
+      return html`<ha-card .header=${c.title}><div class="missing">${t.missing}</div></ha-card>`;
+    }
     const rate = this._num(c.rate);
     const rateAttrs = this.hass.states[c.rate]?.attributes ?? {};
     const soc = c.soc ? this._num(c.soc) : this._attrNum(rateAttrs.soc);
@@ -115,13 +184,13 @@ class BatteryRoiCard extends LitElement {
     const efficiency = this._num(c.efficiency);
     const rateTrend = this._trend(rate);
     const rateText =
-      rateTrend === "flat" ? "Idle" : rateTrend === "up" ? "Earning" : "Spending";
+      rateTrend === "flat" ? t.idle : rateTrend === "up" ? t.earning : t.spending;
 
     return html`
       <ha-card .header=${c.title}>
         <div class="tiles">
-          ${this._tile("Today", c.daily, "Yesterday")}
-          ${this._tile("This month", c.monthly, "Last month")}
+          ${this._tile(t.today, c.daily, t.yesterday)}
+          ${this._tile(t.month, c.monthly, t.lastMonth)}
         </div>
         <div class="ticker" @click=${() => this._moreInfo(c.rate)}>
           <span class="live ${rateTrend}">
@@ -129,25 +198,30 @@ class BatteryRoiCard extends LitElement {
           </span>
           <span class="meta">
             ${price === null ? nothing : html`<span>${this._money(price, { digits: 3 })}/kWh</span>`}
-            ${solar === null ? nothing : html`<span><ha-icon .icon=${"mdi:solar-power"}></ha-icon>${solar.toFixed(1)} kW</span>`}
+            ${solar === null ? nothing : html`<span><ha-icon .icon=${"mdi:solar-power"}></ha-icon>${solar.toLocaleString(this._lang, { maximumFractionDigits: 1 })} kW</span>`}
             ${soc === null ? nothing : html`<span><ha-icon .icon=${"mdi:battery"}></ha-icon>${Math.round(soc)}%</span>`}
           </span>
         </div>
         ${pace === null && payback === null && efficiency === null
           ? nothing
           : html`<div class="outlook">
-              ${pace === null ? nothing : html`<span>Pace ${this._money(pace, { signed: true })}/month</span>`}
-              ${payback === null ? nothing : html`<span>Payback ${payback.toFixed(1)} y</span>`}
-              ${efficiency === null ? nothing : html`<span>Efficiency ${Math.round(efficiency)}%</span>`}
+              ${pace === null ? nothing : html`<span>${t.pace} ${this._money(pace, { signed: true })}${t.perMonth}</span>`}
+              ${payback === null ? nothing : html`<span>${t.payback} ${payback.toLocaleString(this._lang, { maximumFractionDigits: 1 })} ${t.years}</span>`}
+              ${efficiency === null ? nothing : html`<span>${t.efficiency} ${Math.round(efficiency)}%</span>`}
             </div>`}
       </ha-card>
     `;
   }
 
   static styles = css`
+    .missing {
+      padding: 0 16px 16px;
+      color: var(--secondary-text-color);
+    }
     .tiles {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      /* Two tiles side by side, stacked when the card is narrow. */
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       gap: 12px;
       padding: 0 16px 12px;
     }
@@ -232,4 +306,6 @@ window.customCards.push({
   type: "battery-roi-card",
   name: "Battery ROI Scoreboard",
   description: "Daily and monthly profit from charging cheap and discharging expensive.",
+  preview: true,
+  documentationURL: "https://github.com/PeterSlijkhuis/Battery-ROI",
 });

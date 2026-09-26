@@ -7,6 +7,7 @@ from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
+from custom_components.battery_roi.config_flow import _nest
 from custom_components.battery_roi.const import DOMAIN
 
 async def _run(hass: HomeAssistant, freezer, duration: timedelta) -> None:
@@ -32,7 +33,7 @@ async def _setup(hass: HomeAssistant, freezer) -> None:
     hass.states.async_set("sensor.ecoflow_soc", "80", {"unit_of_measurement": "%"})
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
     assert result["type"] is FlowResultType.FORM
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], INPUT)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], _nest(INPUT))
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
 
@@ -69,9 +70,9 @@ async def test_second_instance_blocked_and_same_sensor_rejected(hass: HomeAssist
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        {"charge_power": "sensor.a", "discharge_power": "sensor.a", "positive_means": "charging", "price": "sensor.p"},
+        _nest({"charge_power": "sensor.a", "discharge_power": "sensor.a", "positive_means": "charging", "price": "sensor.p"}),
     )
-    assert result["errors"] == {"discharge_power": "same_sensor"}
+    assert result["errors"] == {"base": "same_sensor"}
 
     await _setup(hass, freezer)
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
@@ -90,7 +91,7 @@ async def test_options_change_keeps_totals(hass: HomeAssistant, freezer) -> None
     entry = hass.config_entries.async_entries(DOMAIN)[0]
     result = await hass.config_entries.options.async_init(entry.entry_id)
     new = {k: v for k, v in INPUT.items() if k != "soc"}
-    result = await hass.config_entries.options.async_configure(result["flow_id"], new)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], _nest(new))
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
 
@@ -109,7 +110,7 @@ async def test_epex_surcharge_feed_in_and_p1(hass: HomeAssistant, freezer) -> No
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        {
+        _nest({
             "charge_power": "sensor.bat_in",
             "discharge_power": "sensor.bat_out",
             "positive_means": "charging",
@@ -118,16 +119,23 @@ async def test_epex_surcharge_feed_in_and_p1(hass: HomeAssistant, freezer) -> No
             "feed_in_price": "sensor.feed_in",
             "grid_power": "sensor.p1",
             "solar_power": "sensor.solar",
-        },
+            "vat": 21,
+        }),
     )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     await hass.async_block_till_done()
 
     rate = hass.states.get("sensor.battery_roi_rate")
-    # 0.6 kW avoided buying at 0.10 + 0.15, 0.4 kW sold at 0.05.
-    assert float(rate.state) == pytest.approx(0.6 * 0.25 + 0.4 * 0.05)
-    assert rate.attributes["price"] == pytest.approx(0.25)
+    # 0.6 kW avoided buying at (0.10 + 0.15) * 1.21, 0.4 kW sold at 0.05.
+    assert float(rate.state) == pytest.approx(0.6 * 0.3025 + 0.4 * 0.05, abs=1e-4)
+    assert rate.attributes["price"] == pytest.approx(0.3025)
     assert rate.attributes["solar_kw"] == pytest.approx(2.5)
 
     await _run(hass, freezer, timedelta(hours=1))
-    assert float(hass.states.get("sensor.battery_roi_profit_today").state) == pytest.approx(0.17)
+    assert float(hass.states.get("sensor.battery_roi_profit_today").state) == pytest.approx(0.2, abs=0.01)
+
+    # A wrong sign or sensor can be undone: reset starts the books again.
+    await hass.services.async_call(
+        "button", "press", {"entity_id": "button.battery_roi_reset_totals"}, blocking=True
+    )
+    assert float(hass.states.get("sensor.battery_roi_profit_total").state) == 0

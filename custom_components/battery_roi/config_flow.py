@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import section
 from homeassistant.helpers import selector
 
 from .const import (
@@ -21,6 +23,9 @@ from .const import (
     CONF_PRICE_SURCHARGE,
     CONF_SOC,
     CONF_SOLAR_POWER,
+    CONF_STANDBY_POWER,
+    CONF_VAT,
+    CONF_WEAR_COST,
     DOMAIN,
     POSITIVE_CHARGING,
     POSITIVE_DISCHARGING,
@@ -29,11 +34,21 @@ from .const import (
 _POWER = selector.EntitySelector(
     selector.EntitySelectorConfig(domain="sensor", device_class="power")
 )
-
 _SENSOR = selector.EntitySelector(selector.EntitySelectorConfig(domain="sensor"))
 
-SCHEMA = vol.Schema(
-    {
+
+def _number(unit: str | None = None, step: float | str = "any", maximum: float | None = None):
+    config = selector.NumberSelectorConfig(min=0, step=step, mode=selector.NumberSelectorMode.BOX)
+    if maximum is not None:
+        config["max"] = maximum
+    if unit:
+        config["unit_of_measurement"] = unit
+    return selector.NumberSelector(config)
+
+
+# Required fields sit in the open sections; extras are folded away.
+SECTIONS: dict[str, tuple[bool, dict]] = {
+    "battery": (False, {
         vol.Required(CONF_CHARGE_POWER): _POWER,
         vol.Optional(CONF_DISCHARGE_POWER): _POWER,
         vol.Required(CONF_POSITIVE_MEANS, default=POSITIVE_CHARGING): selector.SelectSelector(
@@ -42,26 +57,56 @@ SCHEMA = vol.Schema(
                 translation_key=CONF_POSITIVE_MEANS,
             )
         ),
-        vol.Required(CONF_PRICE): _SENSOR,
-        vol.Optional(CONF_PRICE_SURCHARGE): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, max=1, step="any", mode=selector.NumberSelectorMode.BOX)
-        ),
-        vol.Optional(CONF_FEED_IN_PRICE): _SENSOR,
-        vol.Optional(CONF_GRID_POWER): _POWER,
-        vol.Optional(CONF_SOLAR_POWER): _POWER,
         vol.Optional(CONF_SOC): selector.EntitySelector(
             selector.EntitySelectorConfig(domain="sensor", device_class="battery")
         ),
-        vol.Optional(CONF_BATTERY_COST): selector.NumberSelector(
-            selector.NumberSelectorConfig(min=0, step=1, mode=selector.NumberSelectorMode.BOX)
-        ),
+    }),
+    "prices": (False, {
+        vol.Required(CONF_PRICE): _SENSOR,
+        vol.Optional(CONF_PRICE_SURCHARGE): _number(maximum=1),
+        vol.Optional(CONF_VAT): _number("%", 0.1, 100),
+        vol.Optional(CONF_FEED_IN_PRICE): _SENSOR,
+    }),
+    "grid": (True, {
+        vol.Optional(CONF_GRID_POWER): _POWER,
+        vol.Optional(CONF_SOLAR_POWER): _POWER,
+    }),
+    "costs": (True, {
+        vol.Optional(CONF_STANDBY_POWER): _number("W", 1, 1000),
+        vol.Optional(CONF_WEAR_COST): _number(maximum=1),
+        vol.Optional(CONF_BATTERY_COST): _number(step=1),
+    }),
+}
+
+def _schema(current: Mapping[str, Any] | None = None) -> vol.Schema:
+    """Optional sections start folded, unless they already hold a setting."""
+    current = current or {}
+    return vol.Schema(
+        {
+            vol.Required(name): section(
+                vol.Schema(fields),
+                {"collapsed": collapsed and not any(str(k) in current for k in fields)},
+            )
+            for name, (collapsed, fields) in SECTIONS.items()
+        }
+    )
+
+
+def _flatten(user_input: dict[str, Any]) -> dict[str, Any]:
+    """Store answers flat so the rest of the integration never sees sections."""
+    return {k: v for part in user_input.values() for k, v in part.items()}
+
+
+def _nest(flat: Mapping[str, Any]) -> dict[str, dict]:
+    return {
+        name: {str(key): flat[str(key)] for key in fields if str(key) in flat}
+        for name, (_, fields) in SECTIONS.items()
     }
-)
 
 
-def _errors(user_input: dict[str, Any]) -> dict[str, str]:
-    if user_input.get(CONF_DISCHARGE_POWER) == user_input[CONF_CHARGE_POWER]:
-        return {CONF_DISCHARGE_POWER: "same_sensor"}
+def _errors(data: dict[str, Any]) -> dict[str, str]:
+    if data.get(CONF_DISCHARGE_POWER) == data[CONF_CHARGE_POWER]:
+        return {"base": "same_sensor"}
     return {}
 
 
@@ -71,12 +116,13 @@ class BatteryRoiConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
-            errors = _errors(user_input)
+            data = _flatten(user_input)
+            errors = _errors(data)
             if not errors:
-                return self.async_create_entry(title="Battery ROI", data=user_input)
+                return self.async_create_entry(title="Battery ROI", data=data)
         return self.async_show_form(
             step_id="user",
-            data_schema=self.add_suggested_values_to_schema(SCHEMA, user_input),
+            data_schema=self.add_suggested_values_to_schema(_schema(), user_input),
             errors=errors,
         )
 
@@ -92,12 +138,13 @@ class BatteryRoiOptionsFlow(OptionsFlow):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None:
-            errors = _errors(user_input)
+            data = _flatten(user_input)
+            errors = _errors(data)
             if not errors:
-                return self.async_create_entry(data=user_input)
-        current = user_input or self.config_entry.options or self.config_entry.data
+                return self.async_create_entry(data=data)
+        saved = self.config_entry.options or self.config_entry.data
         return self.async_show_form(
             step_id="init",
-            data_schema=self.add_suggested_values_to_schema(SCHEMA, current),
+            data_schema=self.add_suggested_values_to_schema(_schema(saved), user_input or _nest(saved)),
             errors=errors,
         )
