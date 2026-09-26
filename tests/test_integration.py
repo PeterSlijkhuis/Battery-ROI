@@ -188,3 +188,54 @@ async def test_net_metering_ignores_feed_in_until_its_end(hass: HomeAssistant, f
     hass.states.async_set("sensor.grid", "-2001", {"unit_of_measurement": "W"})
     await hass.async_block_till_done()
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.05)
+
+
+async def test_fixed_day_and_night_price_without_sensor(hass: HomeAssistant, freezer) -> None:
+    """A fixed day/night contract works without any price sensor."""
+    await hass.config.async_set_time_zone("Europe/Amsterdam")
+    freezer.move_to("2026-09-25 12:00:00+02:00")  # a Friday
+    hass.states.async_set("sensor.ecoflow_power", "-1000", {"unit_of_measurement": "W"})
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+    no_price = {k: v for k, v in INPUT.items() if k != "price"}
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], _nest(no_price))
+    assert result["errors"] == {"base": "no_price"}
+
+    await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        _nest({**no_price, "price_fixed": 0.30, "price_night": 0.20, "night_start": "23:00:00", "night_end": "07:00:00"}),
+    )
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.30)
+
+    freezer.move_to("2026-09-25 23:30:00+02:00")
+    hass.states.async_set("sensor.ecoflow_power", "-1001", {"unit_of_measurement": "W"})
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.2002)
+
+    # Saturday noon: weekends are off-peak by default.
+    freezer.move_to("2026-09-26 12:00:00+02:00")
+    hass.states.async_set("sensor.ecoflow_power", "-1000", {"unit_of_measurement": "W"})
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.20)
+
+
+async def test_fixed_price_covers_an_unavailable_sensor(hass: HomeAssistant, freezer) -> None:
+    """The dynamic sensor wins; the fixed price only fills in when it has no value."""
+    hass.states.async_set("sensor.ecoflow_power", "-1000", {"unit_of_measurement": "W"})
+    hass.states.async_set("sensor.tariff", "0.10", {"unit_of_measurement": "EUR/kWh"})
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+    await hass.config_entries.flow.async_configure(result["flow_id"], _nest({**INPUT, "price_fixed": 0.30}))
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.10)
+
+    hass.states.async_set("sensor.tariff", "unavailable")
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.30)
+
+
+def test_paid_back_on_is_a_date(freezer) -> None:
+    from custom_components.battery_roi.sensor import _paid_back_on
+
+    freezer.move_to("2026-09-26 12:00:00+02:00")
+    assert _paid_back_on(None) is None
+    assert _paid_back_on(2.0)[:7] == "2028-09"

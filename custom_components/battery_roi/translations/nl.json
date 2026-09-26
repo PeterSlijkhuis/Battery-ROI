@@ -29,17 +29,27 @@
           "prices": {
             "name": "Prijzen",
             "data": {
-              "price": "Stroomprijs (afname)",
+              "price": "Stroomprijs-sensor (dynamisch)",
               "price_surcharge": "Extra kosten per kWh, exclusief btw",
               "vat": "Btw",
+              "price_fixed": "Piekprijs",
+              "price_night": "Dalprijs",
+              "night_start": "Dalprijs vanaf",
+              "night_end": "Dalprijs tot",
+              "night_weekend": "Dalprijs het hele weekend",
               "feed_in_price": "Terugleverprijs-sensor",
               "feed_in_fixed": "Vaste terugleverprijs",
               "net_metering_until": "Salderen tot"
             },
             "data_description": {
-              "price": "Je dynamische tariefsensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh en EUR/MWh worden automatisch omgerekend.",
+              "price": "Je dynamische tariefsensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh en EUR/MWh worden automatisch omgerekend. Leeg laten als je een vast tarief hebt.",
               "price_surcharge": "Alleen voor kale marktprijzen (EPEX, Nordpool): energiebelasting + inkoopvergoeding in EUR/kWh. Leeg laten bij all-in prijzen zoals Tibber.",
               "vat": "Alleen voor kale marktprijzen: over prijs + extra kosten. In Nederland 21. Leeg laten bij all-in prijzen.",
+              "price_fixed": "All-in prijs per kWh. Bij een enkel tarief vul je hier je prijs in en laat je de dalprijs leeg; vul dan ook een terugleverprijs en netvermogen in, want zonder die twee kan de kaart alleen laadverliezen tonen. Wordt ook gebruikt als de prijssensor niet beschikbaar is.",
+              "price_night": "Alleen bij een piek/dal-contract: de all-in dalprijs per kWh.",
+              "night_start": "Wanneer de dalprijs begint.",
+              "night_end": "Wanneer de dalprijs eindigt.",
+              "night_weekend": "Veel piek/dal-contracten rekenen de dalprijs van vrijdagavond tot maandagochtend.",
               "feed_in_price": "Wat je per teruggeleverde kWh krijgt. Bij veel dynamische contracten is dat dezelfde marktprijssensor als hierboven. Werkt alleen samen met netvermogen: zonnestroom die de batterij in gaat kost dan wat je voor teruglevering had gekregen, laden van het net kost de inkoopprijs.",
               "feed_in_fixed": "Gebruik dit in plaats van een sensor als je een vast bedrag per teruggeleverde kWh krijgt (0 als je niets krijgt).",
               "net_metering_until": "Tot deze dag is een teruggeleverde kWh de volle stroomprijs waard (salderen), dus wordt de terugleverprijs genegeerd. Stel het één keer in, daarna schakelt het vanzelf om. Laat leeg als je niet saldeert."
@@ -67,7 +77,7 @@
             "data_description": {
               "standby_power": "Wat de batterij zelf gebruikt (omvormer, BMS) en niet in de vermogenssensoren zit. Leeg laten als je laadsensor het al meetelt.",
               "wear_cost": "Degradatie in EUR per geleverde kWh: aanschafprijs ÷ (capaciteit × aantal cycli). Eén keer per kWh geteld.",
-              "battery_cost": "Voegt een terugverdientijd-sensor toe.",
+              "battery_cost": "Voegt een terugverdien-sensor toe met de verwachte datum.",
               "install_date": "Vult de totalen in vanuit de geschiedenis van Home Assistant, vanaf deze dag. Gedetailleerde geschiedenis gaat meestal 10 dagen terug; daarvoor worden uurgemiddelden gebruikt als je sensoren langetermijnstatistieken bijhouden. Vervangt de huidige totalen."
             }
           }
@@ -75,7 +85,8 @@
       }
     },
     "error": {
-      "same_sensor": "Laad- en ontlaadvermogen moeten verschillende sensoren zijn."
+      "same_sensor": "Laad- en ontlaadvermogen moeten verschillende sensoren zijn.",
+      "no_price": "Kies een prijssensor of vul een piekprijs in."
     },
     "abort": {
       "single_instance_allowed": "Battery ROI is al ingesteld. Gebruik Configureren om sensoren te wijzigen."
@@ -111,17 +122,27 @@
           "prices": {
             "name": "Prijzen",
             "data": {
-              "price": "Stroomprijs (afname)",
+              "price": "Stroomprijs-sensor (dynamisch)",
               "price_surcharge": "Extra kosten per kWh, exclusief btw",
               "vat": "Btw",
+              "price_fixed": "Piekprijs",
+              "price_night": "Dalprijs",
+              "night_start": "Dalprijs vanaf",
+              "night_end": "Dalprijs tot",
+              "night_weekend": "Dalprijs het hele weekend",
               "feed_in_price": "Terugleverprijs-sensor",
               "feed_in_fixed": "Vaste terugleverprijs",
               "net_metering_until": "Salderen tot"
             },
             "data_description": {
-              "price": "Je dynamische tariefsensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh en EUR/MWh worden automatisch omgerekend.",
+              "price": "Je dynamische tariefsensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh en EUR/MWh worden automatisch omgerekend. Leeg laten als je een vast tarief hebt.",
               "price_surcharge": "Alleen voor kale marktprijzen (EPEX, Nordpool): energiebelasting + inkoopvergoeding in EUR/kWh. Leeg laten bij all-in prijzen zoals Tibber.",
               "vat": "Alleen voor kale marktprijzen: over prijs + extra kosten. In Nederland 21. Leeg laten bij all-in prijzen.",
+              "price_fixed": "All-in prijs per kWh. Bij een enkel tarief vul je hier je prijs in en laat je de dalprijs leeg; vul dan ook een terugleverprijs en netvermogen in, want zonder die twee kan de kaart alleen laadverliezen tonen. Wordt ook gebruikt als de prijssensor niet beschikbaar is.",
+              "price_night": "Alleen bij een piek/dal-contract: de all-in dalprijs per kWh.",
+              "night_start": "Wanneer de dalprijs begint.",
+              "night_end": "Wanneer de dalprijs eindigt.",
+              "night_weekend": "Veel piek/dal-contracten rekenen de dalprijs van vrijdagavond tot maandagochtend.",
               "feed_in_price": "Wat je per teruggeleverde kWh krijgt. Bij veel dynamische contracten is dat dezelfde marktprijssensor als hierboven. Werkt alleen samen met netvermogen: zonnestroom die de batterij in gaat kost dan wat je voor teruglevering had gekregen, laden van het net kost de inkoopprijs.",
               "feed_in_fixed": "Gebruik dit in plaats van een sensor als je een vast bedrag per teruggeleverde kWh krijgt (0 als je niets krijgt).",
               "net_metering_until": "Tot deze dag is een teruggeleverde kWh de volle stroomprijs waard (salderen), dus wordt de terugleverprijs genegeerd. Stel het één keer in, daarna schakelt het vanzelf om. Laat leeg als je niet saldeert."
@@ -149,7 +170,7 @@
             "data_description": {
               "standby_power": "Wat de batterij zelf gebruikt (omvormer, BMS) en niet in de vermogenssensoren zit. Leeg laten als je laadsensor het al meetelt.",
               "wear_cost": "Degradatie in EUR per geleverde kWh: aanschafprijs ÷ (capaciteit × aantal cycli). Eén keer per kWh geteld.",
-              "battery_cost": "Voegt een terugverdientijd-sensor toe.",
+              "battery_cost": "Voegt een terugverdien-sensor toe met de verwachte datum.",
               "install_date": "Vult de totalen in vanuit de geschiedenis van Home Assistant, vanaf deze dag. Gedetailleerde geschiedenis gaat meestal 10 dagen terug; daarvoor worden uurgemiddelden gebruikt als je sensoren langetermijnstatistieken bijhouden. Vervangt de huidige totalen."
             }
           }
@@ -157,7 +178,8 @@
       }
     },
     "error": {
-      "same_sensor": "Laad- en ontlaadvermogen moeten verschillende sensoren zijn."
+      "same_sensor": "Laad- en ontlaadvermogen moeten verschillende sensoren zijn.",
+      "no_price": "Kies een prijssensor of vul een piekprijs in."
     }
   },
   "selector": {

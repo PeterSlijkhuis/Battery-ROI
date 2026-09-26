@@ -51,7 +51,7 @@ Standard energy dashboards show kWh. With dynamic prices (EPEX, Nordpool, Tibber
 | Home Assistant **2024.11** or newer | Uses the current config and options flow APIs |
 | [HACS](https://hacs.xyz/) | To install and update (manual install also works) |
 | A **battery power** sensor | Power into and out of the battery, as two sensors or one signed sensor |
-| A **price** sensor | Your dynamic tariff per kWh |
+| A **price** sensor, or your fixed tariff | A dynamic tariff sensor works best. On a fixed or peak/off-peak contract you type in the prices instead |
 | *Optional:* feed-in price, grid power, solar production, state of charge | Better accuracy and more on the card |
 
 No extra Python packages are installed. The card's only library, [Lit](https://lit.dev), is bundled.
@@ -73,7 +73,7 @@ Write down the names of the sensors you'll pick in step 4.
 | --- | --- | --- |
 | Battery charge power *(required)* | `battery` + `power`, or your battery brand | Watts that go **into** the battery. Some batteries have one sensor that is positive while charging and negative while discharging; that's fine |
 | Battery discharge power | `battery` + `power`, or your battery brand | Watts that come **out of** the battery. Skip if the sensor above is signed |
-| Electricity price *(required)* | `price`, `tibber`, `nordpool`, `epex` | Your current price per kWh |
+| Electricity price *(required, or a peak price)* | `price`, `tibber`, `nordpool`, `epex` | Your current price per kWh |
 | Grid power *(recommended)* | `grid`, `p1`, `net`, `power_consumption` | Your smart meter or energy monitor: watts from (+) or to (−) the grid |
 | Feed-in price *(recommended)* | `price` | What you get per exported kWh. With a dynamic contract this is often the same price sensor |
 | Solar production | `solar`, `pv`, `inverter` | Watts your panels produce right now |
@@ -142,17 +142,21 @@ All fields explained:
 | | Discharge power | | Power out of the battery. Leave empty when the field above is signed |
 | | Positive power means | | Only for a signed sensor: does positive mean charging or discharging? |
 | | State of charge | | Battery %, shown on the card |
-| Prices | Electricity price (import) | ✅ | EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… |
+| Prices | Electricity price sensor (dynamic) | ✅ or a peak price | EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… |
 | | Extra cost per kWh, excl. VAT | | **Only for raw market prices** (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh |
 | | VAT % | | **Only for raw market prices**: 21 in the Netherlands |
+| | Peak price | ✅ or a sensor | All-in price per kWh. On a single-rate contract enter your price here and leave off-peak empty. With a sensor too, it fills in whenever the sensor is unavailable |
+| | Off-peak price | | Peak/off-peak contracts only: the all-in off-peak price |
+| | Off-peak from / until | | When the off-peak price applies (default 23:00 to 07:00) |
+| | Off-peak all weekend | | On by default: Saturday and Sunday are off-peak all day, as on most peak/off-peak contracts. Switch off if yours isn't |
 | | Feed-in price sensor | | What you get per exported kWh, from a sensor |
 | | Fixed feed-in price | | Same, as a fixed amount (0 if you get nothing). Use one of the two |
-| | Net metering until | | The day net metering ends for you. Before it the feed-in price is ignored, after it it counts Optional; leave empty if you have no net metering |
+| | Net metering until | | The day net metering ends for you. Before it the feed-in price is ignored, after it it counts. Optional; leave empty if you have no net metering |
 | Grid and solar | Grid power | | Smart meter or energy monitor, + import / − export |
 | | Solar production | | Shown on the card |
 | Battery costs | Standby power | | Watts the battery uses itself that its power sensors miss |
 | | Wear cost per kWh discharged | | Purchase price ÷ (capacity in kWh × rated cycles) |
-| | Purchase cost | | What the battery cost you; adds a payback sensor |
+| | Purchase cost | | What the battery cost you; adds a payback sensor and an expected payback date |
 | | Battery installed on | | Fills in the totals from Home Assistant's history from this day on, see [Start from your install date](#start-from-your-install-date) |
 
 > **Tibber, Frank Energie, Zonneplan** sensors already include tax and VAT: leave *Extra cost* and *VAT* empty.
@@ -193,6 +197,16 @@ Some numbers stay **Unknown** at first, on purpose:
 
 **Judge the battery on a full day, and better on a full week.** A single charge without a discharge will always be red.
 
+### What to expect on your contract
+
+| Contract | Where the money comes from | What the card usually shows |
+| --- | --- | --- |
+| Dynamic (hourly prices) | Charging in cheap hours, discharging in dear ones, plus stored solar | Clearly positive on most days |
+| Peak/off-peak | The gap between the two prices, often only a few cents, plus stored solar | Small; can be negative when the gap is smaller than the charging losses |
+| Single rate | Only stored solar that you would otherwise have exported for less | Only charging losses, **unless** you enter a feed-in price and grid power |
+
+A small or negative number on a fixed contract is not a bug: it is what the battery earns on price differences alone. The solar you keep is where the money is, so on a fixed contract a feed-in price and grid power are not optional.
+
 ## Reading the card
 
 <picture>
@@ -208,7 +222,7 @@ Some numbers stay **Unknown** at first, on purpose:
 | *Earning / Spending / Idle €…/h* | What the battery earns or costs **right now**, per hour |
 | Price, ☀ kW, 🔋 % | Current price per kWh, solar production and battery level (only if you set those sensors) |
 | Pace | This month's profit projected to a full month |
-| Payback | Years until the battery has paid for itself at the rate so far |
+| Paid back by | Month the battery has paid for itself at the rate so far, with the years left |
 | Efficiency | kWh out ÷ kWh in; 80 to 90% is normal for home batteries |
 
 Tap a tile or the ticker to see its history graph.
@@ -283,7 +297,7 @@ The **pace** line projects this month's profit to a full month, using the exact 
 | `sensor.battery_roi_energy_charged` | kWh into the battery |
 | `sensor.battery_roi_energy_discharged` | kWh out of the battery |
 | `sensor.battery_roi_efficiency` | Discharged ÷ charged, shown after 1 kWh |
-| `sensor.battery_roi_payback` | Years until the battery has paid for itself at the average rate so far. Only exists if you entered a purchase cost; shown after 7 days with positive profit |
+| `sensor.battery_roi_payback` | Years until the battery has paid for itself at the average rate so far. Attribute `paid_back_on` holds the expected date. Only exists if you entered a purchase cost; shown after 7 days with positive profit |
 | `button.battery_roi_reset_totals` | Start all totals from zero |
 
 Totals survive restarts. Gaps longer than 15 minutes (Home Assistant down, sensor offline) are skipped rather than guessed.

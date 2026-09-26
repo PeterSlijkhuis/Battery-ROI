@@ -33,7 +33,12 @@ from .const import (
     CONF_INSTALL_DATE,
     CONF_NET_METERING_UNTIL,
     CONF_POSITIVE_MEANS,
+    CONF_NIGHT_END,
+    CONF_NIGHT_START,
+    CONF_NIGHT_WEEKEND,
     CONF_PRICE,
+    CONF_PRICE_FIXED,
+    CONF_PRICE_NIGHT,
     CONF_PRICE_SURCHARGE,
     CONF_SOC,
     CONF_SOLAR_POWER,
@@ -209,6 +214,9 @@ class BatteryRoiHub:
         if price is not None:
             price += self.config.get(CONF_PRICE_SURCHARGE) or 0
             price *= 1 + (self.config.get(CONF_VAT) or 0) / 100
+        else:
+            # No price sensor, or it is unavailable: use the fixed tariff.
+            price = self._fixed_price(dt_util.as_local(at))
         feed_in = read(CONF_FEED_IN_PRICE, _per_kwh)
         if feed_in is None:
             feed_in = self.config.get(CONF_FEED_IN_FIXED)
@@ -251,6 +259,19 @@ class BatteryRoiHub:
                 wear_per_kwh=self.config.get(CONF_WEAR_COST) or 0,
             )
         return sample, live
+
+    def _fixed_price(self, at: datetime) -> float | None:
+        """The fixed tariff, or the night tariff inside its hours (all-in prices)."""
+        night = self.config.get(CONF_PRICE_NIGHT)
+        if night is not None:
+            if self.config.get(CONF_NIGHT_WEEKEND) and at.weekday() >= 5:
+                return night
+            now = at.time()
+            start = time.fromisoformat(self.config.get(CONF_NIGHT_START, "23:00:00"))
+            end = time.fromisoformat(self.config.get(CONF_NIGHT_END, "07:00:00"))
+            if (start <= now < end) if start < end else (now >= start or now < end):
+                return night
+        return self.config.get(CONF_PRICE_FIXED)
 
 
 def _backfill_message(hass: HomeAssistant, first: datetime | None, start: datetime) -> str:

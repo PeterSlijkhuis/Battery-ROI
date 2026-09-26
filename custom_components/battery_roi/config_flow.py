@@ -23,7 +23,12 @@ from .const import (
     CONF_INSTALL_DATE,
     CONF_NET_METERING_UNTIL,
     CONF_POSITIVE_MEANS,
+    CONF_NIGHT_END,
+    CONF_NIGHT_START,
+    CONF_NIGHT_WEEKEND,
     CONF_PRICE,
+    CONF_PRICE_FIXED,
+    CONF_PRICE_NIGHT,
     CONF_PRICE_SURCHARGE,
     CONF_SOC,
     CONF_SOLAR_POWER,
@@ -66,9 +71,14 @@ SECTIONS: dict[str, tuple[bool, dict]] = {
         ),
     }),
     "prices": (False, {
-        vol.Required(CONF_PRICE): _SENSOR,
+        vol.Optional(CONF_PRICE): _SENSOR,
         vol.Optional(CONF_PRICE_SURCHARGE): _number(maximum=1),
         vol.Optional(CONF_VAT): _number("%", 0.1, 100),
+        vol.Optional(CONF_PRICE_FIXED): _number(maximum=5),
+        vol.Optional(CONF_PRICE_NIGHT): _number(maximum=5),
+        vol.Optional(CONF_NIGHT_START, default="23:00:00"): selector.TimeSelector(),
+        vol.Optional(CONF_NIGHT_END, default="07:00:00"): selector.TimeSelector(),
+        vol.Optional(CONF_NIGHT_WEEKEND, default=True): selector.BooleanSelector(),
         vol.Optional(CONF_FEED_IN_PRICE): _SENSOR,
         vol.Optional(CONF_FEED_IN_FIXED): _number(maximum=1),
         vol.Optional(CONF_NET_METERING_UNTIL): selector.DateSelector(),
@@ -124,6 +134,8 @@ RELOAD_HINT_NL = (
 def _errors(data: dict[str, Any]) -> dict[str, str]:
     if data.get(CONF_DISCHARGE_POWER) == data[CONF_CHARGE_POWER]:
         return {"base": "same_sensor"}
+    if not data.get(CONF_PRICE) and data.get(CONF_PRICE_FIXED) is None:
+        return {"base": "no_price"}
     return {}
 
 

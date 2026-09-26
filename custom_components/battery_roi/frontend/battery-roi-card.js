@@ -4,7 +4,7 @@
 import { LitElement, html, css, nothing } from "./lit.js";
 
 // Must match VERSION in const.py (a test checks this).
-const CARD_VERSION = "0.4.0";
+const CARD_VERSION = "0.5.0";
 
 const DEFAULTS = {
   title: "Battery ROI",
@@ -25,7 +25,7 @@ const TEXT = {
   en: {
     today: "Today", yesterday: "Yesterday", month: "This month", lastMonth: "Last month", total: "Lifetime", since: "Since",
     earning: "Earning", spending: "Spending", idle: "Idle",
-    pace: "Pace", perMonth: "/month", payback: "Payback", years: "y", efficiency: "Efficiency",
+    pace: "Pace", perMonth: "/month", payback: "Paid back by", years: "y", efficiency: "Efficiency",
     missing: "Battery ROI isn't set up yet. Add it under Settings → Devices & services.",
     updated: "Battery ROI was updated. Tap here to load the new card.",
   },
@@ -224,11 +224,17 @@ class BatteryRoiCard extends LitElement {
           ? nothing
           : html`<div class="outlook">
               ${pace === null ? nothing : html`<span>${t.pace} ${this._money(pace, { signed: true })}${t.perMonth}</span>`}
-              ${payback === null ? nothing : html`<span>${t.payback} ${payback.toLocaleString(this._lang, { maximumFractionDigits: 1 })} ${t.years}</span>`}
+              ${payback === null ? nothing : html`<span>${t.payback} ${this._paidBackOn(c.payback)}(${payback.toLocaleString(this._lang, { maximumFractionDigits: 1 })} ${t.years})</span>`}
               ${efficiency === null ? nothing : html`<span>${t.efficiency} ${Math.round(efficiency)}%</span>`}
             </div>`}
       </ha-card>
     `;
+  }
+
+  _paidBackOn(entity) {
+    const on = this.hass.states[entity]?.attributes?.paid_back_on;
+    if (!on) return "";
+    return `${new Date(on).toLocaleDateString(this._lang, { month: "short", year: "numeric" })} `;
   }
 
   static styles = css`

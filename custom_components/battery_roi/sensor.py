@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -82,11 +83,21 @@ async def async_setup_entry(
             RoiSensor(
                 hub, entry, "payback", "Payback",
                 lambda: _round(hub.acc.payback_years(cost, dt_util.now()), 1),
-                lambda: {"battery_cost": cost, "tracking_since": hub.acc.totals.since},
+                lambda: {
+                    "battery_cost": cost,
+                    "tracking_since": hub.acc.totals.since,
+                    "paid_back_on": _paid_back_on(hub.acc.payback_years(cost, dt_util.now())),
+                },
                 unit=UnitOfTime.YEARS, icon="mdi:scale-balance",
             )
         )
     async_add_entities(entities)
+
+
+def _paid_back_on(years: float | None) -> str | None:
+    if years is None:
+        return None
+    return (dt_util.now() + timedelta(days=years * 365.25)).date().isoformat()
 
 
 def _round(value: float | None, digits: int = 2) -> float | None:

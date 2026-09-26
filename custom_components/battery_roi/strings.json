@@ -29,17 +29,27 @@
           "prices": {
             "name": "Prices",
             "data": {
-              "price": "Electricity price (import)",
+              "price": "Electricity price sensor (dynamic)",
               "price_surcharge": "Extra cost per kWh, excluding VAT",
               "vat": "VAT",
+              "price_fixed": "Peak price",
+              "price_night": "Off-peak price",
+              "night_start": "Off-peak from",
+              "night_end": "Off-peak until",
+              "night_weekend": "Off-peak all weekend",
               "feed_in_price": "Feed-in price sensor",
               "feed_in_fixed": "Fixed feed-in price",
               "net_metering_until": "Net metering until"
             },
             "data_description": {
-              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically.",
+              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically. Leave empty if you have a fixed tariff.",
               "price_surcharge": "Only for raw market prices (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh. Leave empty for all-in prices such as Tibber.",
               "vat": "Only for raw market prices: applied to price + extra cost. 21 in the Netherlands. Leave empty for all-in prices.",
+              "price_fixed": "All-in price per kWh. On a single-rate contract, enter your price here and leave off-peak empty; then also fill in a feed-in price and grid power, because without them the card can only show charging losses. Also used when the price sensor is unavailable.",
+              "price_night": "Only for a peak/off-peak contract: the all-in off-peak price per kWh.",
+              "night_start": "When the off-peak price starts.",
+              "night_end": "When the off-peak price ends.",
+              "night_weekend": "Many peak/off-peak contracts charge the off-peak price from Friday night until Monday morning.",
               "feed_in_price": "What you get per exported kWh. On many dynamic contracts that is the same market price sensor as above. Only used together with grid power: then solar that goes into the battery costs what you would have been paid for exporting it, and grid charging costs the import price.",
               "feed_in_fixed": "Use this instead of a sensor when you get a fixed amount per exported kWh (0 if you get nothing).",
               "net_metering_until": "Until this day an exported kWh is worth the full import price (net metering), so the feed-in price is ignored. Set it once and the switch happens by itself. Leave empty if you have no net metering."
@@ -67,7 +77,7 @@
             "data_description": {
               "standby_power": "What the battery uses itself (inverter, BMS) that its power sensors don't show. Leave empty if your charge sensor already includes it.",
               "wear_cost": "Degradation in EUR per kWh delivered: purchase cost ÷ (capacity × rated cycles). Counted once per kWh.",
-              "battery_cost": "Adds a payback sensor.",
+              "battery_cost": "Adds a payback sensor with the expected payback date.",
               "install_date": "Fills in the totals from Home Assistant's history, starting this day. Detailed history usually covers the last 10 days; before that, hourly averages are used where your sensors keep long-term statistics. Replaces the current totals."
             }
           }
@@ -75,7 +85,8 @@
       }
     },
     "error": {
-      "same_sensor": "Charge and discharge power must be different sensors."
+      "same_sensor": "Charge and discharge power must be different sensors.",
+      "no_price": "Pick a price sensor or enter a peak price."
     },
     "abort": {
       "single_instance_allowed": "Battery ROI is already set up. Use Configure to change sensors."
@@ -111,17 +122,27 @@
           "prices": {
             "name": "Prices",
             "data": {
-              "price": "Electricity price (import)",
+              "price": "Electricity price sensor (dynamic)",
               "price_surcharge": "Extra cost per kWh, excluding VAT",
               "vat": "VAT",
+              "price_fixed": "Peak price",
+              "price_night": "Off-peak price",
+              "night_start": "Off-peak from",
+              "night_end": "Off-peak until",
+              "night_weekend": "Off-peak all weekend",
               "feed_in_price": "Feed-in price sensor",
               "feed_in_fixed": "Fixed feed-in price",
               "net_metering_until": "Net metering until"
             },
             "data_description": {
-              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically.",
+              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically. Leave empty if you have a fixed tariff.",
               "price_surcharge": "Only for raw market prices (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh. Leave empty for all-in prices such as Tibber.",
               "vat": "Only for raw market prices: applied to price + extra cost. 21 in the Netherlands. Leave empty for all-in prices.",
+              "price_fixed": "All-in price per kWh. On a single-rate contract, enter your price here and leave off-peak empty; then also fill in a feed-in price and grid power, because without them the card can only show charging losses. Also used when the price sensor is unavailable.",
+              "price_night": "Only for a peak/off-peak contract: the all-in off-peak price per kWh.",
+              "night_start": "When the off-peak price starts.",
+              "night_end": "When the off-peak price ends.",
+              "night_weekend": "Many peak/off-peak contracts charge the off-peak price from Friday night until Monday morning.",
               "feed_in_price": "What you get per exported kWh. On many dynamic contracts that is the same market price sensor as above. Only used together with grid power: then solar that goes into the battery costs what you would have been paid for exporting it, and grid charging costs the import price.",
               "feed_in_fixed": "Use this instead of a sensor when you get a fixed amount per exported kWh (0 if you get nothing).",
               "net_metering_until": "Until this day an exported kWh is worth the full import price (net metering), so the feed-in price is ignored. Set it once and the switch happens by itself. Leave empty if you have no net metering."
@@ -149,7 +170,7 @@
             "data_description": {
               "standby_power": "What the battery uses itself (inverter, BMS) that its power sensors don't show. Leave empty if your charge sensor already includes it.",
               "wear_cost": "Degradation in EUR per kWh delivered: purchase cost ÷ (capacity × rated cycles). Counted once per kWh.",
-              "battery_cost": "Adds a payback sensor.",
+              "battery_cost": "Adds a payback sensor with the expected payback date.",
               "install_date": "Fills in the totals from Home Assistant's history, starting this day. Detailed history usually covers the last 10 days; before that, hourly averages are used where your sensors keep long-term statistics. Replaces the current totals."
             }
           }
@@ -157,7 +178,8 @@
       }
     },
     "error": {
-      "same_sensor": "Charge and discharge power must be different sensors."
+      "same_sensor": "Charge and discharge power must be different sensors.",
+      "no_price": "Pick a price sensor or enter a peak price."
     }
   },
   "selector": {
