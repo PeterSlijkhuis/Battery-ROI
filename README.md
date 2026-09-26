@@ -1,55 +1,52 @@
-# Battery ROI Scoreboard
+# Battery ROI
 
-A Home Assistant card that shows how much money your home battery made today and this month by charging when power was cheap and discharging when it was expensive.
+A Home Assistant integration that shows how much money your home battery made today and this month by charging when power was cheap and discharging when it was expensive. Everyone picks their own sensors in a setup screen; no YAML.
 
 ![preview](docs/preview.png)
 
-## What "profit" means here
+## Install with HACS
+
+1. HACS → ⋮ → Custom repositories → add `https://github.com/PeterSlijkhuis/Battery-ROI`, category **Integration**.
+2. Install **Battery ROI** and restart Home Assistant.
+3. Settings → Devices & services → Add integration → **Battery ROI**, and pick your sensors.
+4. Add the card to a dashboard: `type: custom:battery-roi-card`. The integration loads the card for you; no resource to add.
+
+Change sensors later with **Configure** on the integration. Your running totals are kept.
+
+## The setup screen
+
+| Field | Required | Examples |
+| --- | --- | --- |
+| Battery charge power | yes | EcoFlow input power, or one signed battery power sensor |
+| Battery discharge power | no | EcoFlow output power. Leave empty if the field above is signed |
+| Electricity price (import) | yes | EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan. EUR/kWh, ct/kWh and EUR/MWh are converted |
+| Extra cost per kWh | no | For raw EPEX prices: energy tax + supplier fee + VAT, in EUR/kWh |
+| Feed-in price | no | What you get per exported kWh |
+| Grid power (P1) | no | HomeWizard P1 active power, + import / − export |
+| Solar production | no | Shown on the card |
+| Battery state of charge | no | Shown on the card |
+| Battery purchase cost | no | Adds a payback sensor |
+
+## What "profit" means
+
+Profit is your grid bill without the battery minus your grid bill with it, added up every 30 seconds.
+
+- With only a price sensor, that is `(discharge kW − charge kW) × price`: the same price both ways.
+- With a feed-in price **and** a P1 sensor, each kWh is valued at the price it actually displaced. Discharging into the house avoids buying (import price); discharging while exporting earns the feed-in price; charging from solar surplus costs the feed-in price you gave up; charging from the grid costs the import price.
+
+Battery wear is not counted. Round-trip losses are, because you charge more kWh than you get back.
+
+## Sensors
+
+`sensor.battery_roi_rate` (EUR/h right now, with price, solar and state of charge as attributes), `profit_today` and `profit_this_month` (previous period in `last_period`), `profit_total`, `energy_charged`, `energy_discharged`, `efficiency`, and `payback` when a battery cost is set.
+
+## Card options
+
+All optional: `title`, `daily`, `monthly`, `rate`, `payback`, `efficiency`, `soc`, `price`, `currency`. Defaults point at the integration's own sensors. The card uses only Home Assistant theme variables, so it follows your theme and dark mode.
+
+## Development
 
 ```
-profit = ∫ (discharge_kW − charge_kW) × tariff_now  dt
+pip install -r requirements_test.txt
+pytest
 ```
-
-Every moment the battery discharges, the energy is valued at that moment's tariff. Every moment it charges, the energy is costed at that moment's tariff. This equals "hourly kWh × hourly price" but also works with 15‑minute prices.
-
-Included: round‑trip losses (you charge more kWh than you get back).
-Not included: battery wear, and the difference between import and feed‑in prices (one all‑in price is used for both directions; see caveats).
-
-## Install
-
-1. Copy `packages/battery_roi.yaml` to `<config>/packages/` and make sure `configuration.yaml` has:
-   ```yaml
-   homeassistant:
-     packages: !include_dir_named packages
-   ```
-2. Edit the **CONFIG** block at the top of that file. Every entity id marked `PLACEHOLDER` must point at your own sensors:
-   | Placeholder | What it should be |
-   | --- | --- |
-   | `sensor.ecoflow_battery_charge_power` | Power into the battery, W |
-   | `sensor.ecoflow_battery_discharge_power` | Power out of the battery, W |
-   | `sensor.electricity_price_current` | Dynamic tariff, EUR/kWh |
-   | `sensor.ecoflow_battery_level` | State of charge, % (display only) |
-   | `sensor.p1_meter_active_power` | HomeWizard P1 power, W (display only) |
-3. Restart Home Assistant. You get:
-   - `sensor.battery_roi_rate` live EUR/h (positive = earning)
-   - `sensor.battery_roi_profit_total` running total
-   - `sensor.battery_roi_profit_daily` / `sensor.battery_roi_profit_monthly` (previous period in `last_period`)
-4. Copy `battery-roi-card.js` to `<config>/www/`, add it under Settings → Dashboards → Resources as `/local/battery-roi-card.js` (type: JavaScript module), and add the card:
-   ```yaml
-   type: custom:battery-roi-card
-   ```
-   Optional keys: `title`, `daily`, `monthly`, `rate`, `soc`, `price`, `currency` (default `EUR`), and `payback` / `efficiency` to show sensors you already have, for example:
-   ```yaml
-   type: custom:battery-roi-card
-   payback: sensor.battery_payback_years
-   efficiency: sensor.battery_measured_efficiency
-   ```
-   The card also shows a monthly pace: month-to-date profit scaled by the exact time elapsed and the real length of the month, hidden on the 1st.
-
-The card uses only Home Assistant theme variables (`--success-color`, `--error-color`, `--primary-text-color`, ...), so it follows your theme and dark mode.
-
-## Caveats
-
-- **State of charge is not enough.** SoC changes are rounded to whole percents and hide losses, so the maths uses charge and discharge power. If your EcoFlow only exposes one signed power sensor, the CONFIG block shows the variant to use.
-- **One price for both directions.** Right for Dutch net metering (saldering) where exported kWh are netted at the import price. Saldering ends on 1 January 2027; after that, energy the battery exports is worth the feed‑in price and solar energy stored in it costs you the feed‑in price you gave up. The HomeWizard P1 sensor is already aliased in the package for that split.
-- **Lit is loaded from a CDN** (`cdn.jsdelivr.net`). If your Home Assistant has no internet, download that file into `www/` and change the import URL at the top of the card.

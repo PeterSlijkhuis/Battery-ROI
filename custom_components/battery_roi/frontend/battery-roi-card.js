@@ -1,23 +1,20 @@
 // Battery ROI Scoreboard card for Home Assistant.
-// Lit is loaded from Lit's official prebuilt bundle; if your HA has no
-// internet, download that file next to this one and change the URL.
-import {
-  LitElement,
-  html,
-  css,
-  nothing,
-} from "https://cdn.jsdelivr.net/gh/lit/dist@3/all/lit-all.min.js";
+// Served and registered by the battery_roi integration; Lit ships alongside
+// so the card also works without internet.
+import { LitElement, html, css, nothing } from "./lit.js";
 
 const DEFAULTS = {
   title: "Battery ROI",
-  daily: "sensor.battery_roi_profit_daily",
-  monthly: "sensor.battery_roi_profit_monthly",
+  daily: "sensor.battery_roi_profit_today",
+  monthly: "sensor.battery_roi_profit_this_month",
   rate: "sensor.battery_roi_rate",
-  soc: "sensor.battery_roi_state_of_charge",
-  price: "sensor.battery_roi_price",
-  payback: null,
-  efficiency: null,
-  currency: "EUR",
+  payback: "sensor.battery_roi_payback",
+  efficiency: "sensor.battery_roi_efficiency",
+  // Price and state of charge come from the rate sensor's attributes
+  // unless you point these at other entities.
+  soc: null,
+  price: null,
+  currency: null,
 };
 
 class BatteryRoiCard extends LitElement {
@@ -43,11 +40,16 @@ class BatteryRoiCard extends LitElement {
     return Number.isFinite(value) ? value : null;
   }
 
+  _attrNum(value) {
+    const n = parseFloat(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
   _money(value, { digits = 2, signed = false } = {}) {
     if (value === null || value === undefined) return "–";
     return new Intl.NumberFormat(this.hass.locale?.language ?? this.hass.language, {
       style: "currency",
-      currency: this._config.currency,
+      currency: this._config.currency ?? this.hass.config?.currency ?? "EUR",
       minimumFractionDigits: digits,
       maximumFractionDigits: digits,
       signDisplay: signed ? "exceptZero" : "auto",
@@ -104,11 +106,13 @@ class BatteryRoiCard extends LitElement {
     if (!this.hass || !this._config) return nothing;
     const c = this._config;
     const rate = this._num(c.rate);
-    const soc = this._num(c.soc);
-    const price = this._num(c.price);
+    const rateAttrs = this.hass.states[c.rate]?.attributes ?? {};
+    const soc = c.soc ? this._num(c.soc) : this._attrNum(rateAttrs.soc);
+    const price = c.price ? this._num(c.price) : this._attrNum(rateAttrs.price);
+    const solar = this._attrNum(rateAttrs.solar_kw);
     const pace = this._pace(this._num(c.monthly));
-    const payback = c.payback ? this._num(c.payback) : null;
-    const efficiency = c.efficiency ? this._num(c.efficiency) : null;
+    const payback = this._num(c.payback);
+    const efficiency = this._num(c.efficiency);
     const rateTrend = this._trend(rate);
     const rateText =
       rateTrend === "flat" ? "Idle" : rateTrend === "up" ? "Earning" : "Spending";
@@ -125,7 +129,8 @@ class BatteryRoiCard extends LitElement {
           </span>
           <span class="meta">
             ${price === null ? nothing : html`<span>${this._money(price, { digits: 3 })}/kWh</span>`}
-            ${soc === null ? nothing : html`<span>${Math.round(soc)}%</span>`}
+            ${solar === null ? nothing : html`<span><ha-icon .icon=${"mdi:solar-power"}></ha-icon>${solar.toFixed(1)} kW</span>`}
+            ${soc === null ? nothing : html`<span><ha-icon .icon=${"mdi:battery"}></ha-icon>${Math.round(soc)}%</span>`}
           </span>
         </div>
         ${pace === null && payback === null && efficiency === null
@@ -202,6 +207,14 @@ class BatteryRoiCard extends LitElement {
     .outlook {
       display: flex;
       gap: 12px;
+    }
+    .meta span {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+    .meta ha-icon {
+      --mdc-icon-size: 16px;
     }
     .outlook {
       flex-wrap: wrap;
