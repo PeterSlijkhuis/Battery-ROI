@@ -148,6 +148,7 @@ All fields explained:
 | | Fixed price | ✅ or a sensor | All-in price per kWh on a fixed contract, or the day price of a day/night contract. With a sensor too, it fills in whenever the sensor is unavailable |
 | | Night price | | Day/night contracts only: the all-in night price |
 | | Night price from / until | | When the night price applies (default 23:00 to 07:00) |
+| | Night price all weekend | | Switch on if your night price also runs all Saturday and Sunday |
 | | Feed-in price sensor | | What you get per exported kWh, from a sensor |
 | | Fixed feed-in price | | Same, as a fixed amount (0 if you get nothing). Use one of the two |
 | | Net metering until | | The day net metering ends for you. Before it the feed-in price is ignored, after it it counts. Optional; leave empty if you have no net metering |

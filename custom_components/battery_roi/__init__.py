@@ -35,6 +35,7 @@ from .const import (
     CONF_POSITIVE_MEANS,
     CONF_NIGHT_END,
     CONF_NIGHT_START,
+    CONF_NIGHT_WEEKEND,
     CONF_PRICE,
     CONF_PRICE_FIXED,
     CONF_PRICE_NIGHT,
@@ -215,7 +216,7 @@ class BatteryRoiHub:
             price *= 1 + (self.config.get(CONF_VAT) or 0) / 100
         else:
             # No price sensor, or it is unavailable: use the fixed tariff.
-            price = self._fixed_price(dt_util.as_local(at).time())
+            price = self._fixed_price(dt_util.as_local(at))
         feed_in = read(CONF_FEED_IN_PRICE, _per_kwh)
         if feed_in is None:
             feed_in = self.config.get(CONF_FEED_IN_FIXED)
@@ -259,10 +260,13 @@ class BatteryRoiHub:
             )
         return sample, live
 
-    def _fixed_price(self, now: time) -> float | None:
+    def _fixed_price(self, at: datetime) -> float | None:
         """The fixed tariff, or the night tariff inside its hours (all-in prices)."""
         night = self.config.get(CONF_PRICE_NIGHT)
         if night is not None:
+            if self.config.get(CONF_NIGHT_WEEKEND) and at.weekday() >= 5:
+                return night
+            now = at.time()
             start = time.fromisoformat(self.config.get(CONF_NIGHT_START, "23:00:00"))
             end = time.fromisoformat(self.config.get(CONF_NIGHT_END, "07:00:00"))
             if (start <= now < end) if start < end else (now >= start or now < end):

@@ -36,6 +36,7 @@
               "price_night": "Nachtprijs",
               "night_start": "Nachtprijs vanaf",
               "night_end": "Nachtprijs tot",
+              "night_weekend": "Nachtprijs het hele weekend",
               "feed_in_price": "Terugleverprijs-sensor",
               "feed_in_fixed": "Vaste terugleverprijs",
               "net_metering_until": "Salderen tot"
@@ -48,6 +49,7 @@
               "price_night": "Alleen bij een dag/nacht-contract: de all-in nachtprijs per kWh.",
               "night_start": "Wanneer de nachtprijs begint.",
               "night_end": "Wanneer de nachtprijs eindigt.",
+              "night_weekend": "Veel dag/nacht-contracten rekenen het daltarief van vrijdagavond tot maandagochtend.",
               "feed_in_price": "Wat je per teruggeleverde kWh krijgt. Bij veel dynamische contracten is dat dezelfde marktprijssensor als hierboven. Werkt alleen samen met netvermogen: zonnestroom die de batterij in gaat kost dan wat je voor teruglevering had gekregen, laden van het net kost de inkoopprijs.",
               "feed_in_fixed": "Gebruik dit in plaats van een sensor als je een vast bedrag per teruggeleverde kWh krijgt (0 als je niets krijgt).",
               "net_metering_until": "Tot deze dag is een teruggeleverde kWh de volle stroomprijs waard (salderen), dus wordt de terugleverprijs genegeerd. Stel het één keer in, daarna schakelt het vanzelf om. Laat leeg als je niet saldeert."
@@ -127,6 +129,7 @@
               "price_night": "Nachtprijs",
               "night_start": "Nachtprijs vanaf",
               "night_end": "Nachtprijs tot",
+              "night_weekend": "Nachtprijs het hele weekend",
               "feed_in_price": "Terugleverprijs-sensor",
               "feed_in_fixed": "Vaste terugleverprijs",
               "net_metering_until": "Salderen tot"
@@ -139,6 +142,7 @@
               "price_night": "Alleen bij een dag/nacht-contract: de all-in nachtprijs per kWh.",
               "night_start": "Wanneer de nachtprijs begint.",
               "night_end": "Wanneer de nachtprijs eindigt.",
+              "night_weekend": "Veel dag/nacht-contracten rekenen het daltarief van vrijdagavond tot maandagochtend.",
               "feed_in_price": "Wat je per teruggeleverde kWh krijgt. Bij veel dynamische contracten is dat dezelfde marktprijssensor als hierboven. Werkt alleen samen met netvermogen: zonnestroom die de batterij in gaat kost dan wat je voor teruglevering had gekregen, laden van het net kost de inkoopprijs.",
               "feed_in_fixed": "Gebruik dit in plaats van een sensor als je een vast bedrag per teruggeleverde kWh krijgt (0 als je niets krijgt).",
               "net_metering_until": "Tot deze dag is een teruggeleverde kWh de volle stroomprijs waard (salderen), dus wordt de terugleverprijs genegeerd. Stel het één keer in, daarna schakelt het vanzelf om. Laat leeg als je niet saldeert."

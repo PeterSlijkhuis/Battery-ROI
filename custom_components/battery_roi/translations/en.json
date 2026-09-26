@@ -36,6 +36,7 @@
               "price_night": "Night price",
               "night_start": "Night price from",
               "night_end": "Night price until",
+              "night_weekend": "Night price all weekend",
               "feed_in_price": "Feed-in price sensor",
               "feed_in_fixed": "Fixed feed-in price",
               "net_metering_until": "Net metering until"
@@ -48,6 +49,7 @@
               "price_night": "Only for a day/night contract: the all-in night price per kWh.",
               "night_start": "When the night price starts.",
               "night_end": "When the night price ends.",
+              "night_weekend": "Many day/night contracts charge the night price from Friday night until Monday morning.",
               "feed_in_price": "What you get per exported kWh. On many dynamic contracts that is the same market price sensor as above. Only used together with grid power: then solar that goes into the battery costs what you would have been paid for exporting it, and grid charging costs the import price.",
               "feed_in_fixed": "Use this instead of a sensor when you get a fixed amount per exported kWh (0 if you get nothing).",
               "net_metering_until": "Until this day an exported kWh is worth the full import price (net metering), so the feed-in price is ignored. Set it once and the switch happens by itself. Leave empty if you have no net metering."
@@ -127,6 +129,7 @@
               "price_night": "Night price",
               "night_start": "Night price from",
               "night_end": "Night price until",
+              "night_weekend": "Night price all weekend",
               "feed_in_price": "Feed-in price sensor",
               "feed_in_fixed": "Fixed feed-in price",
               "net_metering_until": "Net metering until"
@@ -139,6 +142,7 @@
               "price_night": "Only for a day/night contract: the all-in night price per kWh.",
               "night_start": "When the night price starts.",
               "night_end": "When the night price ends.",
+              "night_weekend": "Many day/night contracts charge the night price from Friday night until Monday morning.",
               "feed_in_price": "What you get per exported kWh. On many dynamic contracts that is the same market price sensor as above. Only used together with grid power: then solar that goes into the battery costs what you would have been paid for exporting it, and grid charging costs the import price.",
               "feed_in_fixed": "Use this instead of a sensor when you get a fixed amount per exported kWh (0 if you get nothing).",
               "net_metering_until": "Until this day an exported kWh is worth the full import price (net metering), so the feed-in price is ignored. Set it once and the switch happens by itself. Leave empty if you have no net metering."

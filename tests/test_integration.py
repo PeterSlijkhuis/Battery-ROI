@@ -193,7 +193,7 @@ async def test_net_metering_ignores_feed_in_until_its_end(hass: HomeAssistant, f
 async def test_fixed_day_and_night_price_without_sensor(hass: HomeAssistant, freezer) -> None:
     """A fixed day/night contract works without any price sensor."""
     await hass.config.async_set_time_zone("Europe/Amsterdam")
-    freezer.move_to("2026-09-26 12:00:00+02:00")
+    freezer.move_to("2026-09-25 12:00:00+02:00")  # a Friday
     hass.states.async_set("sensor.ecoflow_power", "-1000", {"unit_of_measurement": "W"})
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
     no_price = {k: v for k, v in INPUT.items() if k != "price"}
@@ -202,15 +202,21 @@ async def test_fixed_day_and_night_price_without_sensor(hass: HomeAssistant, fre
 
     await hass.config_entries.flow.async_configure(
         result["flow_id"],
-        _nest({**no_price, "price_fixed": 0.30, "price_night": 0.20, "night_start": "23:00:00", "night_end": "07:00:00"}),
+        _nest({**no_price, "price_fixed": 0.30, "price_night": 0.20, "night_start": "23:00:00", "night_end": "07:00:00", "night_weekend": True}),
     )
     await hass.async_block_till_done()
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.30)
 
-    freezer.move_to("2026-09-26 23:30:00+02:00")
+    freezer.move_to("2026-09-25 23:30:00+02:00")
     hass.states.async_set("sensor.ecoflow_power", "-1001", {"unit_of_measurement": "W"})
     await hass.async_block_till_done()
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.2002)
+
+    # Saturday noon: the whole weekend is at the night price.
+    freezer.move_to("2026-09-26 12:00:00+02:00")
+    hass.states.async_set("sensor.ecoflow_power", "-1000", {"unit_of_measurement": "W"})
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.20)
 
 
 async def test_fixed_price_covers_an_unavailable_sensor(hass: HomeAssistant, freezer) -> None:
