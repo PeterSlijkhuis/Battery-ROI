@@ -20,7 +20,7 @@
               "soc": "Laadtoestand batterij"
             },
             "data_description": {
-              "charge_power": "Vermogen de batterij in (W of kW). Heb je één sensor die positief en negatief kan zijn, kies die dan hier en laat ontladen leeg.",
+              "charge_power": "Vermogen de batterij in (W of kW), van elk merk: EcoFlow, Zendure, Marstek, Victron, Huawei, SolarEdge… Heb je één sensor die positief en negatief kan zijn, kies die dan hier en laat ontladen leeg.",
               "discharge_power": "Vermogen uit de batterij. Leeg laten als de sensor hierboven positief en negatief kan zijn.",
               "positive_means": "Alleen bij één sensor met teken. Fout? Dan wordt de winst negatief terwijl de batterij verdient: draai dit om en druk op Totalen resetten.",
               "soc": "Optioneel, wordt op de kaart getoond."
@@ -44,11 +44,11 @@
           "grid": {
             "name": "Net en zonnepanelen (aanbevolen)",
             "data": {
-              "grid_power": "Netvermogen (P1-meter)",
+              "grid_power": "Netvermogen",
               "solar_power": "Zonne-opwek"
             },
             "data_description": {
-              "grid_power": "HomeWizard P1 of een andere meter: positief bij afname, negatief bij teruglevering. Met een terugleverprijs weet de integratie of de batterij inkoop of verkoop verving.",
+              "grid_power": "Je slimme meter of energiemonitor (DSMR, HomeWizard P1, Shelly EM, Tibber Pulse…): positief bij afname, negatief bij teruglevering. Met een terugleverprijs weet de integratie of de batterij inkoop of verkoop verving.",
               "solar_power": "Optioneel, wordt op de kaart getoond."
             }
           },
@@ -96,7 +96,7 @@
               "soc": "Laadtoestand batterij"
             },
             "data_description": {
-              "charge_power": "Vermogen de batterij in (W of kW). Heb je één sensor die positief en negatief kan zijn, kies die dan hier en laat ontladen leeg.",
+              "charge_power": "Vermogen de batterij in (W of kW), van elk merk: EcoFlow, Zendure, Marstek, Victron, Huawei, SolarEdge… Heb je één sensor die positief en negatief kan zijn, kies die dan hier en laat ontladen leeg.",
               "discharge_power": "Vermogen uit de batterij. Leeg laten als de sensor hierboven positief en negatief kan zijn.",
               "positive_means": "Alleen bij één sensor met teken. Fout? Dan wordt de winst negatief terwijl de batterij verdient: draai dit om en druk op Totalen resetten.",
               "soc": "Optioneel, wordt op de kaart getoond."
@@ -120,11 +120,11 @@
           "grid": {
             "name": "Net en zonnepanelen (aanbevolen)",
             "data": {
-              "grid_power": "Netvermogen (P1-meter)",
+              "grid_power": "Netvermogen",
               "solar_power": "Zonne-opwek"
             },
             "data_description": {
-              "grid_power": "HomeWizard P1 of een andere meter: positief bij afname, negatief bij teruglevering. Met een terugleverprijs weet de integratie of de batterij inkoop of verkoop verving.",
+              "grid_power": "Je slimme meter of energiemonitor (DSMR, HomeWizard P1, Shelly EM, Tibber Pulse…): positief bij afname, negatief bij teruglevering. Met een terugleverprijs weet de integratie of de batterij inkoop of verkoop verving.",
               "solar_power": "Optioneel, wordt op de kaart getoond."
             }
           },

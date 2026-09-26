@@ -20,7 +20,7 @@
               "soc": "Battery state of charge"
             },
             "data_description": {
-              "charge_power": "Power flowing into the battery (W or kW). If you only have one signed power sensor, pick it here and leave discharge power empty.",
+              "charge_power": "Power flowing into the battery (W or kW), from any brand: EcoFlow, Zendure, Marstek, Victron, Huawei, SolarEdge… If you only have one signed power sensor, pick it here and leave discharge power empty.",
               "discharge_power": "Power flowing out of the battery. Leave empty when the sensor above is signed.",
               "positive_means": "Only used with a single signed power sensor. Wrong? Profit turns negative while the battery earns: flip this and press Reset totals.",
               "soc": "Optional, shown on the card."
@@ -44,11 +44,11 @@
           "grid": {
             "name": "Grid and solar (recommended)",
             "data": {
-              "grid_power": "Grid power (P1 meter)",
+              "grid_power": "Grid power",
               "solar_power": "Solar production"
             },
             "data_description": {
-              "grid_power": "HomeWizard P1 or another meter: positive when importing, negative when exporting. With a feed-in price this tells whether the battery avoided buying or selling.",
+              "grid_power": "Your smart meter or energy monitor (DSMR, HomeWizard P1, Shelly EM, Tibber Pulse…): positive when importing, negative when exporting. With a feed-in price this tells whether the battery avoided buying or selling.",
               "solar_power": "Optional, shown on the card."
             }
           },
@@ -96,7 +96,7 @@
               "soc": "Battery state of charge"
             },
             "data_description": {
-              "charge_power": "Power flowing into the battery (W or kW). If you only have one signed power sensor, pick it here and leave discharge power empty.",
+              "charge_power": "Power flowing into the battery (W or kW), from any brand: EcoFlow, Zendure, Marstek, Victron, Huawei, SolarEdge… If you only have one signed power sensor, pick it here and leave discharge power empty.",
               "discharge_power": "Power flowing out of the battery. Leave empty when the sensor above is signed.",
               "positive_means": "Only used with a single signed power sensor. Wrong? Profit turns negative while the battery earns: flip this and press Reset totals.",
               "soc": "Optional, shown on the card."
@@ -120,11 +120,11 @@
           "grid": {
             "name": "Grid and solar (recommended)",
             "data": {
-              "grid_power": "Grid power (P1 meter)",
+              "grid_power": "Grid power",
               "solar_power": "Solar production"
             },
             "data_description": {
-              "grid_power": "HomeWizard P1 or another meter: positive when importing, negative when exporting. With a feed-in price this tells whether the battery avoided buying or selling.",
+              "grid_power": "Your smart meter or energy monitor (DSMR, HomeWizard P1, Shelly EM, Tibber Pulse…): positive when importing, negative when exporting. With a feed-in price this tells whether the battery avoided buying or selling.",
               "solar_power": "Optional, shown on the card."
             }
           },

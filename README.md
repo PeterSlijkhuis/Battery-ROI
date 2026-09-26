@@ -34,8 +34,8 @@ Standard energy dashboards show kWh. With dynamic prices (EPEX, Nordpool, Tibber
 
 - 🧮 **Real profit, not an estimate**: every 30 seconds, energy × the price that applied at that moment
 - 🖱️ **No YAML**: pick your own sensors in a setup screen, change them later without losing your totals
-- 🔌 **Works with what you have**: EcoFlow, HomeWizard P1, any dynamic price sensor, W/kW and EUR/kWh, ct/kWh or EUR/MWh
-- ☀️ **Solar aware**: with a feed-in price and a P1 meter, it knows whether a kWh replaced buying or selling
+- 🔌 **Works with any battery that has a power sensor in Home Assistant** (EcoFlow, Zendure, Marstek, Anker SOLIX, Victron, Huawei, SolarEdge, Sessy, Tesla Powerwall and so on), any grid meter, any dynamic price sensor, W/kW and EUR/kWh, ct/kWh or EUR/MWh
+- ☀️ **Solar aware**: with a feed-in price and a grid meter, it knows whether a kWh replaced buying or selling
 - 📈 **Dashboard card included**: today, this month, yesterday, last month, live €/h, monthly pace, payback and efficiency
 - 🎨 **Matches your theme**: the card uses only Home Assistant theme variables, light and dark
 - 🇳🇱 **English and Dutch**: setup screen and card follow your Home Assistant language
@@ -50,7 +50,7 @@ Standard energy dashboards show kWh. With dynamic prices (EPEX, Nordpool, Tibber
 | [HACS](https://hacs.xyz/) | To install and update (manual install also works) |
 | A **battery power** sensor | Power into and out of the battery, as two sensors or one signed sensor |
 | A **price** sensor | Your dynamic tariff per kWh |
-| *Optional:* feed-in price, grid power (P1), solar production, state of charge | Better accuracy and more on the card |
+| *Optional:* feed-in price, grid power, solar production, state of charge | Better accuracy and more on the card |
 
 No extra Python packages are installed. The card's only library, [Lit](https://lit.dev), is bundled.
 
@@ -58,7 +58,7 @@ No extra Python packages are installed. The card's only library, [Lit](https://l
 
 Five steps, about 10 minutes. Every step says exactly where to click in Home Assistant.
 
-> **Before you start:** you need [HACS](https://hacs.xyz/docs/use/) installed, and your battery and price sensors must already exist in Home Assistant (for example from the EcoFlow, HomeWizard, Tibber or Nordpool integrations).
+> **Before you start:** you need [HACS](https://hacs.xyz/docs/use/) installed, and your battery and price sensors must already exist in Home Assistant (for example from your battery's own integration, a smart meter integration like DSMR or HomeWizard, and a price integration like Nordpool, ENTSO-e or Tibber).
 
 ### Step 1 · Find your sensors
 
@@ -69,13 +69,25 @@ Write down the names of the sensors you'll pick in step 4.
 
 | You need | Search for | What it looks like |
 | --- | --- | --- |
-| Battery charge power *(required)* | `ecoflow` + `power` | Watts that go **into** the battery. Some batteries have one sensor that is positive while charging and negative while discharging; that's fine |
-| Battery discharge power | `ecoflow` + `power` | Watts that come **out of** the battery. Skip if the sensor above is signed |
+| Battery charge power *(required)* | `battery` + `power`, or your battery brand | Watts that go **into** the battery. Some batteries have one sensor that is positive while charging and negative while discharging; that's fine |
+| Battery discharge power | `battery` + `power`, or your battery brand | Watts that come **out of** the battery. Skip if the sensor above is signed |
 | Electricity price *(required)* | `price`, `tibber`, `nordpool`, `epex` | Your current price per kWh |
-| Grid power *(recommended)* | `p1` + `power` | HomeWizard P1: watts from (+) or to (−) the grid |
+| Grid power *(recommended)* | `grid`, `p1`, `net`, `power_consumption` | Your smart meter or energy monitor: watts from (+) or to (−) the grid |
 | Feed-in price *(recommended)* | `price` | What you get per exported kWh. With a dynamic contract this is often the same price sensor |
-| Solar production | `solar`, `envoy`, `inverter` | Watts your panels produce right now |
-| Battery level | `ecoflow` + `level`, `soc` | Battery % |
+| Solar production | `solar`, `pv`, `inverter` | Watts your panels produce right now |
+| Battery level | `battery` + `level`, `soc`, `state_of_charge` | Battery % |
+
+**Examples by brand.** Entity names differ per integration and per firmware, so treat these as hints, not exact names:
+
+| Kind | Brand or integration | Sensor to look for |
+| --- | --- | --- |
+| Battery | EcoFlow, Zendure, Anker SOLIX | separate *input* / *output* power sensors → fill both charge and discharge |
+| Battery | Marstek, Victron, Huawei, SolarEdge, Sessy, Tesla Powerwall | one *battery power* sensor, positive one way and negative the other → fill charge only and set *Positive power means* |
+| Grid | DSMR / Slimme meter, HomeWizard P1, P1 Monitor, Shelly EM, Tibber Pulse | *power consumption* minus *power production*, or one signed *active power* sensor |
+| Solar | Enphase, SolarEdge, SMA, Growatt, Fronius, APsystems | *current power* or *AC power* of the inverter |
+| Price | Nordpool, ENTSO-e, EnergyZero, Tibber, Frank Energie, Zonneplan, Octopus | *current price* |
+
+Your grid meter (or battery) only has two separate sensors, one per direction, and you want one signed sensor? Make one with a [template helper](https://my.home-assistant.io/redirect/helpers/) (**Settings → Devices & services → Helpers → Create helper → Template → Template sensor**, state `{{ states('sensor.power_consumption')|float(0) - states('sensor.power_production')|float(0) }}`, unit W, device class Power).
 
 > **Not sure which way a signed sensor goes?** Open it (click the name) while the battery is charging. Positive number = "positive means charging".
 
@@ -131,7 +143,7 @@ All fields explained:
 | | Extra cost per kWh, excl. VAT | | **Only for raw market prices** (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh |
 | | VAT % | | **Only for raw market prices**: 21 in the Netherlands |
 | | Feed-in price | | What you get per exported kWh |
-| Grid and solar | Grid power (P1) | | HomeWizard P1 active power, + import / − export |
+| Grid and solar | Grid power | | Smart meter or energy monitor, + import / − export |
 | | Solar production | | Shown on the card |
 | Battery costs | Standby power | | Watts the battery uses itself that its power sensors miss |
 | | Wear cost per kWh discharged | | Purchase price ÷ (capacity in kWh × rated cycles) |
@@ -167,7 +179,7 @@ The numbers start at €0 and grow from the moment you finish step 4.
 
 **Numbers look wrong?**
 
-- *Profit goes down while the battery clearly earns money* → the sign is flipped. Change **Positive power means** (step 4 via Configure), or check your P1 sensor, then **Reset totals**.
+- *Profit goes down while the battery clearly earns money* → the sign is flipped. Change **Positive power means** (step 4 via Configure), or check your grid power sensor, then **Reset totals**.
 - *Profit is far too small or large* → check the price sensor's unit (EUR/kWh, ct/kWh and EUR/MWh are handled) and that *Extra cost* is only filled in for raw market prices.
 - *Card says Battery ROI isn't set up* → finish step 4, then refresh the browser.
 - *Card doesn't appear in the card list* → refresh the browser (Ctrl+F5); on the phone app, close and reopen it.
@@ -221,13 +233,13 @@ flowchart LR
     B[Battery power<br/>charge / discharge] --> S((every 30 s))
     P[Price now<br/>+ extra cost] --> S
     F[Feed-in price] -.-> S
-    G[P1 grid power] -.-> S
+    G[Grid power] -.-> S
     S --> R[€/h right now]
     R --> T[Today · Month · Total]
 ```
 
 - **Price sensor only.** `profit per hour = (discharge kW − charge kW) × price`. The same price is used in both directions, which is right under net metering (*salderingsregeling*).
-- **Plus feed-in price and P1.** Each kWh is valued at the price it actually displaced:
+- **Plus feed-in price and grid power.** Each kWh is valued at the price it actually displaced:
 
 | Battery is… | While the house is… | Valued at |
 | --- | --- | --- |
@@ -238,7 +250,7 @@ flowchart LR
 
 Included: round-trip losses, because you charge more kWh than you get back. Optional: the battery's own standby draw, and wear per kWh discharged (counted once, not on both charge and discharge).
 
-> **Tip for the Netherlands:** net metering ends on 1 January 2027. From then on a stored solar kWh is worth the feed-in price, not the import price, so add a feed-in price and your P1 meter to keep the numbers honest.
+> **Tip for the Netherlands:** net metering ends on 1 January 2027. From then on a stored solar kWh is worth the feed-in price, not the import price, so add a feed-in price and your grid meter to keep the numbers honest.
 
 > **Tip for raw EPEX prices:** they exclude energy tax, supplier fee and VAT. Fill in *Extra cost per kWh* and *VAT*: the import price becomes (market price + extra cost) × (1 + VAT).
 
