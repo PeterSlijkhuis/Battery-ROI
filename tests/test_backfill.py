@@ -20,7 +20,7 @@ def test_replay_books_cheap_charge_and_dear_discharge():
         "sensor.price": _points("sensor.price", 0.10, 0.40, 0.40),
     }
 
-    def build(get):
+    def build(get, at):
         power, price = get("sensor.battery"), get("sensor.price")
         if power is None or price is None:
             return None
@@ -39,7 +39,7 @@ def test_replay_skips_hours_home_assistant_was_off():
     """A power reading held through an outage must not be booked."""
     points = {"sensor.battery": _points("sensor.battery", -1)}
 
-    def build(get):
+    def build(get, at):
         power = get("sensor.battery")
         return None if power is None else Sample(0, -float(power.state), 0.40)
 

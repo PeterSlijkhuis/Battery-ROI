@@ -33,14 +33,16 @@
               "price_surcharge": "Extra cost per kWh, excluding VAT",
               "vat": "VAT",
               "feed_in_price": "Feed-in price sensor",
-              "feed_in_fixed": "Fixed feed-in price"
+              "feed_in_fixed": "Fixed feed-in price",
+              "net_metering_until": "Net metering until"
             },
             "data_description": {
               "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically.",
               "price_surcharge": "Only for raw market prices (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh. Leave empty for all-in prices such as Tibber.",
               "vat": "Only for raw market prices: applied to price + extra cost. 21 in the Netherlands. Leave empty for all-in prices.",
               "feed_in_price": "What you get per exported kWh. On many dynamic contracts that is the same market price sensor as above. Only used together with grid power: then solar that goes into the battery costs what you would have been paid for exporting it, and grid charging costs the import price.",
-              "feed_in_fixed": "Use this instead of a sensor when you get a fixed amount per exported kWh (0 if you get nothing). Leave both empty while net metering (saldering) applies: a stored solar kWh is then worth the full price."
+              "feed_in_fixed": "Use this instead of a sensor when you get a fixed amount per exported kWh (0 if you get nothing).",
+              "net_metering_until": "Until this day an exported kWh is worth the full import price (net metering), so the feed-in price is ignored. Set it once and the switch happens by itself. Leave empty if you have no net metering."
             }
           },
           "grid": {
@@ -113,14 +115,16 @@
               "price_surcharge": "Extra cost per kWh, excluding VAT",
               "vat": "VAT",
               "feed_in_price": "Feed-in price sensor",
-              "feed_in_fixed": "Fixed feed-in price"
+              "feed_in_fixed": "Fixed feed-in price",
+              "net_metering_until": "Net metering until"
             },
             "data_description": {
               "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically.",
               "price_surcharge": "Only for raw market prices (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh. Leave empty for all-in prices such as Tibber.",
               "vat": "Only for raw market prices: applied to price + extra cost. 21 in the Netherlands. Leave empty for all-in prices.",
               "feed_in_price": "What you get per exported kWh. On many dynamic contracts that is the same market price sensor as above. Only used together with grid power: then solar that goes into the battery costs what you would have been paid for exporting it, and grid charging costs the import price.",
-              "feed_in_fixed": "Use this instead of a sensor when you get a fixed amount per exported kWh (0 if you get nothing). Leave both empty while net metering (saldering) applies: a stored solar kWh is then worth the full price."
+              "feed_in_fixed": "Use this instead of a sensor when you get a fixed amount per exported kWh (0 if you get nothing).",
+              "net_metering_until": "Until this day an exported kWh is worth the full import price (net metering), so the feed-in price is ignored. Set it once and the switch happens by itself. Leave empty if you have no net metering."
             }
           },
           "grid": {

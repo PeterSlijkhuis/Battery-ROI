@@ -168,3 +168,27 @@ async def test_solar_charging_costs_fixed_feed_in(hass: HomeAssistant, freezer) 
     hass.states.async_set("sensor.grid", "1500", {"unit_of_measurement": "W"})
     await hass.async_block_till_done()
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.30)
+
+
+async def test_net_metering_ignores_feed_in_until_its_end(hass: HomeAssistant, freezer) -> None:
+    """Set up once: solar is worth the full price until net metering ends, then the feed-in price."""
+    hass.config.country = "NL"
+    freezer.move_to("2026-12-31 12:00:00+01:00")
+    hass.states.async_set("sensor.ecoflow_power", "-1000", {"unit_of_measurement": "W"})
+    hass.states.async_set("sensor.tariff", "0.30", {"unit_of_measurement": "EUR/kWh"})
+    hass.states.async_set("sensor.grid", "-2000", {"unit_of_measurement": "W"})
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+    # Dutch installs get the end of saldering filled in.
+    prefill = next(k for k in result["data_schema"].schema["prices"].schema.schema if k == "net_metering_until")
+    assert prefill.description["suggested_value"] == "2027-01-01"
+    await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        _nest({**INPUT, "grid_power": "sensor.grid", "feed_in_fixed": 0.05, "net_metering_until": "2027-01-01"}),
+    )
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.30)
+
+    freezer.move_to("2027-01-01 12:00:00+01:00")
+    hass.states.async_set("sensor.grid", "-2001", {"unit_of_measurement": "W"})
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.05)

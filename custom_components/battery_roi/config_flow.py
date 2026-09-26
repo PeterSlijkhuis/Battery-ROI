@@ -21,6 +21,7 @@ from .const import (
     CONF_FEED_IN_PRICE,
     CONF_GRID_POWER,
     CONF_INSTALL_DATE,
+    CONF_NET_METERING_UNTIL,
     CONF_POSITIVE_MEANS,
     CONF_PRICE,
     CONF_PRICE_SURCHARGE,
@@ -30,6 +31,7 @@ from .const import (
     CONF_VAT,
     CONF_WEAR_COST,
     DOMAIN,
+    NL_NET_METERING_END,
     POSITIVE_CHARGING,
     POSITIVE_DISCHARGING,
 )
@@ -70,6 +72,7 @@ SECTIONS: dict[str, tuple[bool, dict]] = {
         vol.Optional(CONF_VAT): _number("%", 0.1, 100),
         vol.Optional(CONF_FEED_IN_PRICE): _SENSOR,
         vol.Optional(CONF_FEED_IN_FIXED): _number(maximum=1),
+        vol.Optional(CONF_NET_METERING_UNTIL): selector.DateSelector(),
     }),
     "grid": (True, {
         vol.Optional(CONF_GRID_POWER): _POWER,
@@ -143,6 +146,8 @@ class BatteryRoiConfigFlow(ConfigFlow, domain=DOMAIN):
                     f"{DOMAIN}_reload",
                 )
                 return self.async_create_entry(title="Battery ROI", data=data)
+        if user_input is None and self.hass.config.country == "NL":
+            user_input = {"prices": {CONF_NET_METERING_UNTIL: NL_NET_METERING_END}}
         return self.async_show_form(
             step_id="user",
             data_schema=self.add_suggested_values_to_schema(_schema(), user_input),

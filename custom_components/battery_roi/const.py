@@ -11,6 +11,7 @@ CONF_PRICE_SURCHARGE = "price_surcharge"
 CONF_VAT = "vat"
 CONF_FEED_IN_PRICE = "feed_in_price"
 CONF_FEED_IN_FIXED = "feed_in_fixed"
+CONF_NET_METERING_UNTIL = "net_metering_until"
 CONF_GRID_POWER = "grid_power"
 CONF_SOLAR_POWER = "solar_power"
 CONF_SOC = "soc"
@@ -18,6 +19,9 @@ CONF_BATTERY_COST = "battery_cost"
 CONF_STANDBY_POWER = "standby_power"
 CONF_WEAR_COST = "wear_cost"
 CONF_INSTALL_DATE = "install_date"
+
+# Dutch net metering (salderingsregeling) ends on this day.
+NL_NET_METERING_END = "2027-01-01"
 
 POSITIVE_CHARGING = "charging"
 POSITIVE_DISCHARGING = "discharging"

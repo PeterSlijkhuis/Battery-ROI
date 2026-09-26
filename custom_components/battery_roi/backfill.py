@@ -73,7 +73,7 @@ def replay(
     points: Points,
     start: datetime,
     end: datetime,
-    build: Callable[[Callable[[str], State | None]], Sample | None],
+    build: Callable[[Callable[[str], State | None], datetime], Sample | None],
     running: set[datetime] | None = None,
 ) -> tuple[Accumulator, datetime | None]:
     """Step through the history minute by minute, booking what the battery did.
@@ -96,7 +96,7 @@ def replay(
             index[entity_id] = i
         hour = now.replace(minute=0, second=0, microsecond=0)
         off = running is not None and hour not in running and hour <= last_hour
-        sample = None if off else build(current.get)
+        sample = None if off else build(current.get, now)
         if sample is not None and first is None:
             first = now
         acc.update(dt_util.as_local(now), sample)

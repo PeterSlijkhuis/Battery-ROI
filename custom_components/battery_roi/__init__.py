@@ -31,6 +31,7 @@ from .const import (
     CONF_FEED_IN_PRICE,
     CONF_GRID_POWER,
     CONF_INSTALL_DATE,
+    CONF_NET_METERING_UNTIL,
     CONF_POSITIVE_MEANS,
     CONF_PRICE,
     CONF_PRICE_SURCHARGE,
@@ -151,7 +152,7 @@ class BatteryRoiHub:
         try:
             points, running = await backfill.async_load(self.hass, self._watched, start, end)
             acc, first = await self.hass.async_add_executor_job(
-                backfill.replay, points, start, end, lambda get: self._build(get)[0], running
+                backfill.replay, points, start, end, lambda get, at: self._build(get, at)[0], running
             )
         except Exception:  # noqa: BLE001 - history is a bonus; live tracking must keep running
             _LOGGER.exception("Could not read history for Battery ROI")
@@ -192,12 +193,12 @@ class BatteryRoiHub:
 
     @callback
     def _sample(self) -> None:
-        sample, self.live = self._build(self.hass.states.get)
+        sample, self.live = self._build(self.hass.states.get, dt_util.now())
         self.acc.update(dt_util.now(), sample)
         self.store.async_delay_save(self.acc.as_dict, 60)
         async_dispatcher_send(self.hass, self.signal)
 
-    def _build(self, get) -> tuple[Sample | None, dict[str, float | None]]:
+    def _build(self, get, at: datetime) -> tuple[Sample | None, dict[str, float | None]]:
         """Turn the chosen sensors' states (live or from history) into a sample."""
 
         def read(key: str, parse):
@@ -211,6 +212,10 @@ class BatteryRoiHub:
         feed_in = read(CONF_FEED_IN_PRICE, _per_kwh)
         if feed_in is None:
             feed_in = self.config.get(CONF_FEED_IN_FIXED)
+        # Under net metering an exported kWh is worth the full import price.
+        until = self.config.get(CONF_NET_METERING_UNTIL)
+        if until and dt_util.as_local(at).date().isoformat() < until:
+            feed_in = None
         grid = read(CONF_GRID_POWER, _kw)
 
         charge = read(CONF_CHARGE_POWER, _kw)
