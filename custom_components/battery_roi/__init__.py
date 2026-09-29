@@ -21,7 +21,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 
-from . import backfill
+from . import backfill, card
 from .accumulator import Accumulator, Sample
 from .const import (
     CARD_URL,
@@ -65,6 +65,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         [StaticPathConfig(CARD_URL, str(Path(__file__).parent / "frontend"), False)]
     )
     add_extra_js_url(hass, f"{CARD_URL}/battery-roi-card.js?v={VERSION}")
+    try:
+        await card.async_install(hass)
+    except Exception:  # noqa: BLE001 - the normal URL above still works
+        _LOGGER.warning("Could not add the card as a dashboard resource", exc_info=True)
     return True
 
 
@@ -82,6 +86,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unloaded:
         await entry.runtime_data.async_stop()
     return unloaded
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    await card.async_uninstall(hass)
 
 
 async def _async_reload(hass: HomeAssistant, entry: ConfigEntry) -> None:

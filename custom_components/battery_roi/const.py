@@ -1,7 +1,7 @@
 """Constants for Battery ROI."""
 
 DOMAIN = "battery_roi"
-VERSION = "0.5.0"
+VERSION = "0.5.1"
 
 CONF_CHARGE_POWER = "charge_power"
 CONF_DISCHARGE_POWER = "discharge_power"

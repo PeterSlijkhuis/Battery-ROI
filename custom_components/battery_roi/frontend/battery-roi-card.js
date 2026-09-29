@@ -4,7 +4,7 @@
 import { LitElement, html, css, nothing } from "./lit.js";
 
 // Must match VERSION in const.py (a test checks this).
-const CARD_VERSION = "0.5.0";
+const CARD_VERSION = "0.5.1";
 
 const DEFAULTS = {
   title: "Battery ROI",
@@ -340,13 +340,15 @@ class BatteryRoiCard extends LitElement {
   `;
 }
 
-customElements.define("battery-roi-card", BatteryRoiCard);
-
-window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "battery-roi-card",
-  name: "Battery ROI Scoreboard",
-  description: "Daily and monthly profit from charging cheap and discharging expensive.",
-  preview: true,
-  documentationURL: "https://github.com/PeterSlijkhuis/Battery-ROI",
-});
+// The card can arrive twice (integration URL and dashboard resource).
+if (!customElements.get("battery-roi-card")) {
+  customElements.define("battery-roi-card", BatteryRoiCard);
+  window.customCards = window.customCards || [];
+  window.customCards.push({
+    type: "battery-roi-card",
+    name: "Battery ROI Scoreboard",
+    description: "Daily and monthly profit from charging cheap and discharging expensive.",
+    preview: true,
+    documentationURL: "https://github.com/PeterSlijkhuis/Battery-ROI",
+  });
+}
