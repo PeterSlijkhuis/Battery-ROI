@@ -262,6 +262,7 @@ How far back it can go depends on what Home Assistant kept:
 - *Profit is far too small or large* → check the price sensor's unit (EUR/kWh, ct/kWh and EUR/MWh are handled) and that *Extra cost* is only filled in for raw market prices.
 - *Card says Battery ROI isn't set up* → finish step 4, then refresh the browser.
 - *Card doesn't appear in the card list, or "Custom element doesn't exist: battery-roi-card"* → the page was loaded before Battery ROI was installed, and Home Assistant never adds a new card to a page that is already open. In a browser press Ctrl+F5. In the phone app close the app completely (swipe it away) and open it again. Still missing? **Settings → Companion app → Troubleshooting → Reset frontend cache**, then close and reopen the app once more.
+- *"Configuration error" after Home Assistant restarted* → fixed in 0.5.1. Battery ROI now also puts a copy of the card in `/config/www/battery_roi` and adds it as a dashboard resource, because that folder is available the moment Home Assistant starts, before integrations are loaded. If your `www` folder didn't exist yet, this starts working after one more restart. If you manage dashboard resources in YAML, add `/local/battery_roi/battery-roi-card.js` as a `module` resource yourself. Removing the integration removes the copy and the resource again.
 
 ### Card options
 
