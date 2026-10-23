@@ -151,6 +151,7 @@ All fields explained:
 | | Off-peak all weekend | | On by default: Saturday and Sunday are off-peak all day, as on most peak/off-peak contracts. Switch off if yours isn't |
 | | Feed-in price sensor | | What you get per exported kWh, from a sensor |
 | | Fixed feed-in price | | Same, as a fixed amount (0 if you get nothing). Use one of the two |
+| | Feed-in costs per kWh | | What your supplier charges per exported kWh (*terugleverkosten*), all-in. Counts under net metering too. Needs grid power |
 | | Net metering until | | The day net metering ends for you. Before it the feed-in price is ignored, after it it counts. Optional; leave empty if you have no net metering |
 | Grid and solar | Grid power | | Smart meter or energy monitor, + import / − export |
 | | Solar production | | Shown on the card |
@@ -330,8 +331,9 @@ flowchart LR
 
 **Is solar charging free?** Only if you'd get nothing for exporting it. Storing a solar kWh means not selling it, so it costs whatever you'd have been paid:
 
-- **Net metering (saldering):** an exported kWh cancels a bought one, so a stored solar kWh is worth the full price. Leave the feed-in fields empty, or fill them in now together with the *Net metering until* date so the switch happens by itself.
+- **Net metering (saldering):** an exported kWh cancels a bought one, so storing a solar kWh costs the full price and discharging it later saves the full price. On a fixed contract that nets out to the charging losses; on a dynamic contract you earn the price difference between when it was stored and when it was used. Leave the feed-in fields empty, or fill them in now together with the *Net metering until* date so the switch happens by itself.
 - **No net metering:** set a feed-in price (sensor or fixed) plus grid power. Solar charging then costs that feed-in price, often a few cents, and grid charging costs the full import price.
+- **Your supplier charges feed-in costs** (*terugleverkosten*): fill in *Feed-in costs per kWh* and grid power. Every exported kWh is then worth that much less, under net metering too, so each solar kWh you store instead of exporting earns those costs back.
 - **You get nothing for export:** set the fixed feed-in price to 0 and solar charging is free.
 
 Included: round-trip losses, because you charge more kWh than you get back. Optional: the battery's own standby draw, and wear per kWh discharged (counted once, not on both charge and discharge).

@@ -190,6 +190,26 @@ async def test_net_metering_ignores_feed_in_until_its_end(hass: HomeAssistant, f
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.05)
 
 
+async def test_feed_in_costs_count_under_net_metering(hass: HomeAssistant, freezer) -> None:
+    """Storing solar avoids the supplier's feed-in costs, even while net metering."""
+    freezer.move_to("2026-10-18 12:00:00+02:00")
+    hass.states.async_set("sensor.ecoflow_power", "-1000", {"unit_of_measurement": "W"})
+    hass.states.async_set("sensor.tariff", "0.30", {"unit_of_measurement": "EUR/kWh"})
+    hass.states.async_set("sensor.grid", "-2000", {"unit_of_measurement": "W"})
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+    await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        _nest({**INPUT, "grid_power": "sensor.grid", "feed_in_cost": 0.12, "net_metering_until": "2027-01-01"}),
+    )
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.18)
+
+    # Grid charging still costs the full import price.
+    hass.states.async_set("sensor.grid", "1500", {"unit_of_measurement": "W"})
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.30)
+
+
 async def test_fixed_day_and_night_price_without_sensor(hass: HomeAssistant, freezer) -> None:
     """A fixed day/night contract works without any price sensor."""
     await hass.config.async_set_time_zone("Europe/Amsterdam")
