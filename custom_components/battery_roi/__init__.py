@@ -27,6 +27,7 @@ from .const import (
     CARD_URL,
     CONF_CHARGE_POWER,
     CONF_DISCHARGE_POWER,
+    CONF_FEED_IN_COST,
     CONF_FEED_IN_FIXED,
     CONF_FEED_IN_PRICE,
     CONF_GRID_POWER,
@@ -232,6 +233,10 @@ class BatteryRoiHub:
         until = self.config.get(CONF_NET_METERING_UNTIL)
         if until and dt_util.as_local(at).date().isoformat() < until:
             feed_in = None
+        # Feed-in costs make an exported kWh worth less, also under net metering.
+        cost = self.config.get(CONF_FEED_IN_COST)
+        if cost and price is not None:
+            feed_in = (price if feed_in is None else feed_in) - cost
         grid = read(CONF_GRID_POWER, _kw)
 
         charge = read(CONF_CHARGE_POWER, _kw)

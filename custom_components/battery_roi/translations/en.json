@@ -39,6 +39,7 @@
               "night_weekend": "Off-peak all weekend",
               "feed_in_price": "Feed-in price sensor",
               "feed_in_fixed": "Fixed feed-in price",
+              "feed_in_cost": "Feed-in costs per kWh",
               "net_metering_until": "Net metering until"
             },
             "data_description": {
@@ -52,6 +53,7 @@
               "night_weekend": "Many peak/off-peak contracts charge the off-peak price from Friday night until Monday morning.",
               "feed_in_price": "What you get per exported kWh. On many dynamic contracts that is the same market price sensor as above. Only used together with grid power: then solar that goes into the battery costs what you would have been paid for exporting it, and grid charging costs the import price.",
               "feed_in_fixed": "Use this instead of a sensor when you get a fixed amount per exported kWh (0 if you get nothing).",
+              "feed_in_cost": "Some suppliers charge per exported kWh (feed-in costs), also under net metering. All-in, in EUR/kWh. Subtracted from what an exported kWh is worth, so solar you store instead of exporting earns this back. Only used together with grid power.",
               "net_metering_until": "Until this day an exported kWh is worth the full import price (net metering), so the feed-in price is ignored. Set it once and the switch happens by itself. Leave empty if you have no net metering."
             }
           },
@@ -132,6 +134,7 @@
               "night_weekend": "Off-peak all weekend",
               "feed_in_price": "Feed-in price sensor",
               "feed_in_fixed": "Fixed feed-in price",
+              "feed_in_cost": "Feed-in costs per kWh",
               "net_metering_until": "Net metering until"
             },
             "data_description": {
@@ -145,6 +148,7 @@
               "night_weekend": "Many peak/off-peak contracts charge the off-peak price from Friday night until Monday morning.",
               "feed_in_price": "What you get per exported kWh. On many dynamic contracts that is the same market price sensor as above. Only used together with grid power: then solar that goes into the battery costs what you would have been paid for exporting it, and grid charging costs the import price.",
               "feed_in_fixed": "Use this instead of a sensor when you get a fixed amount per exported kWh (0 if you get nothing).",
+              "feed_in_cost": "Some suppliers charge per exported kWh (feed-in costs), also under net metering. All-in, in EUR/kWh. Subtracted from what an exported kWh is worth, so solar you store instead of exporting earns this back. Only used together with grid power.",
               "net_metering_until": "Until this day an exported kWh is worth the full import price (net metering), so the feed-in price is ignored. Set it once and the switch happens by itself. Leave empty if you have no net metering."
             }
           },
