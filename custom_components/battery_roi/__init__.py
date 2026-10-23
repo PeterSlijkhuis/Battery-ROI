@@ -76,6 +76,9 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
 async def _async_remove_local_copy(hass: HomeAssistant) -> None:
     """Undo 0.5.1, which copied the card to /config/www and added it as a /local resource."""
+    done: Store[dict] = Store(hass, 1, f"{DOMAIN}.local_copy_removed")
+    if await done.async_load():
+        return
     legacy = f"/local/{DOMAIN}/"
     lovelace = hass.data.get("lovelace")
     resources = lovelace.get("resources") if isinstance(lovelace, dict) else getattr(lovelace, "resources", None)
@@ -85,6 +88,7 @@ async def _async_remove_local_copy(hass: HomeAssistant) -> None:
             if item["url"].startswith(legacy):
                 await resources.async_delete_item(item["id"])
     await hass.async_add_executor_job(shutil.rmtree, hass.config.path("www", DOMAIN), True)
+    await done.async_save({"version": VERSION})
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

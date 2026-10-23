@@ -3,6 +3,7 @@ from pathlib import Path
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 
+from custom_components.battery_roi import _async_remove_local_copy
 from custom_components.battery_roi.const import DOMAIN
 
 
@@ -22,3 +23,8 @@ async def test_upgrade_removes_the_local_copy(hass: HomeAssistant) -> None:
 
     assert not local.exists()
     assert [item["url"] for item in resources.async_items()] == ["/local/other-card.js"]
+
+    # Only once: a folder made after the cleanup is left alone.
+    local.mkdir()
+    await _async_remove_local_copy(hass)
+    assert local.exists()
