@@ -2,6 +2,7 @@
   "domain": "battery_roi",
   "name": "Battery ROI",
   "after_dependencies": [
+    "lovelace",
     "recorder"
   ],
   "codeowners": [
@@ -18,5 +19,5 @@
   "issue_tracker": "https://github.com/PeterSlijkhuis/Battery-ROI/issues",
   "requirements": [],
   "single_config_entry": true,
-  "version": "0.5.1"
+  "version": "0.5.2"
 }

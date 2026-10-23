@@ -4,7 +4,7 @@
 import { LitElement, html, css, nothing } from "./lit.js";
 
 // Must match VERSION in const.py (a test checks this).
-const CARD_VERSION = "0.5.1";
+const CARD_VERSION = "0.5.2";
 
 const DEFAULTS = {
   title: "Battery ROI",

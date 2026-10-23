@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import shutil
 from datetime import datetime, time, timedelta
 from pathlib import Path
 
@@ -21,7 +22,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
 
-from . import backfill, card
+from . import backfill
 from .accumulator import Accumulator, Sample
 from .const import (
     CARD_URL,
@@ -66,10 +67,23 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     )
     add_extra_js_url(hass, f"{CARD_URL}/battery-roi-card.js?v={VERSION}")
     try:
-        await card.async_install(hass)
-    except Exception:  # noqa: BLE001 - the normal URL above still works
-        _LOGGER.warning("Could not add the card as a dashboard resource", exc_info=True)
+        await _async_remove_local_copy(hass)
+    except Exception:  # noqa: BLE001 - leftovers are harmless, the card still loads
+        _LOGGER.warning("Could not remove the old card copy from /local", exc_info=True)
     return True
+
+
+async def _async_remove_local_copy(hass: HomeAssistant) -> None:
+    """Undo 0.5.1, which copied the card to /config/www and added it as a /local resource."""
+    legacy = f"/local/{DOMAIN}/"
+    lovelace = hass.data.get("lovelace")
+    resources = lovelace.get("resources") if isinstance(lovelace, dict) else getattr(lovelace, "resources", None)
+    if hasattr(resources, "async_delete_item"):
+        await resources.async_get_info()  # loads the stored resources
+        for item in list(resources.async_items()):
+            if item["url"].startswith(legacy):
+                await resources.async_delete_item(item["id"])
+    await hass.async_add_executor_job(shutil.rmtree, hass.config.path("www", DOMAIN), True)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -86,10 +100,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unloaded:
         await entry.runtime_data.async_stop()
     return unloaded
-
-
-async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    await card.async_uninstall(hass)
 
 
 async def _async_reload(hass: HomeAssistant, entry: ConfigEntry) -> None:
