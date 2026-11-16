@@ -42,6 +42,35 @@ const TEXT = {
   },
 };
 
+const LABELS = {
+  en: {
+    advanced: "Advanced",
+    title: "Title",
+    daily: "Profit today sensor",
+    monthly: "Profit this month sensor",
+    total: "Profit total sensor",
+    rate: "Rate sensor",
+    payback: "Payback sensor",
+    efficiency: "Efficiency sensor",
+    price: "Price sensor (default: from rate sensor)",
+    soc: "State of charge sensor (default: from rate sensor)",
+    currency: "Currency (default: Home Assistant's)",
+  },
+  nl: {
+    advanced: "Geavanceerd",
+    title: "Titel",
+    daily: "Sensor winst vandaag",
+    monthly: "Sensor winst deze maand",
+    total: "Sensor winst totaal",
+    rate: "Sensor opbrengst per uur",
+    payback: "Sensor terugverdientijd",
+    efficiency: "Sensor rendement",
+    price: "Prijssensor (standaard: uit de opbrengstsensor)",
+    soc: "Laadniveausensor (standaard: uit de opbrengstsensor)",
+    currency: "Valuta (standaard: die van Home Assistant)",
+  },
+};
+
 const ENTITY = { entity: { domain: "sensor" } };
 
 class BatteryRoiCard extends LitElement {
@@ -56,6 +85,9 @@ class BatteryRoiCard extends LitElement {
 
   // Visual editor in the dashboard UI; every field is optional.
   static getConfigForm() {
+    // The editor gets no hass object here, so ask the app for its language.
+    const lang = (document.querySelector("home-assistant")?.hass?.language ?? navigator.language ?? "en").split("-")[0];
+    const labels = LABELS[lang] ?? LABELS.en;
     return {
       schema: [
         { name: "title", selector: { text: {} } },
@@ -66,7 +98,7 @@ class BatteryRoiCard extends LitElement {
         {
           type: "expandable",
           name: "",
-          title: "Advanced",
+          title: labels.advanced,
           schema: [
             { name: "payback", selector: ENTITY },
             { name: "efficiency", selector: ENTITY },
@@ -76,19 +108,7 @@ class BatteryRoiCard extends LitElement {
           ],
         },
       ],
-      computeLabel: (field) =>
-        ({
-          title: "Title",
-          daily: "Profit today sensor",
-          monthly: "Profit this month sensor",
-          total: "Profit total sensor",
-          rate: "Rate sensor",
-          payback: "Payback sensor",
-          efficiency: "Efficiency sensor",
-          price: "Price sensor (default: from rate sensor)",
-          soc: "State of charge sensor (default: from rate sensor)",
-          currency: "Currency (default: Home Assistant's)",
-        })[field.name],
+      computeLabel: (field) => labels[field.name],
     };
   }
 
@@ -148,17 +168,18 @@ class BatteryRoiCard extends LitElement {
     return value > 0 ? "up" : "down";
   }
 
-  // Month-to-date profit projected over the whole month, using the exact
-  // time elapsed and this month's real length. Hidden in the first day,
-  // when a few hours of data would be blown up 30x.
-  _pace(monthly) {
-    if (monthly === null) return null;
-    const now = new Date();
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
-    const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-    const elapsed = now - start;
+  // Month-to-date profit projected over the whole month. The month starts at
+  // the sensor's last_reset, which is in Home Assistant's time zone, not the
+  // browser's. Hidden in the first day, when a few hours would be blown up 30x.
+  _pace(entityId) {
+    const monthly = this._num(entityId);
+    const start = this.hass.states[entityId]?.attributes?.last_reset;
+    if (monthly === null || !start) return null;
+    const [year, month] = start.split("-").map(Number);
+    const days = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const elapsed = Date.now() - Date.parse(start);
     if (elapsed < 86400000) return null;
-    return (monthly * (end - start)) / elapsed;
+    return (monthly * days * 86400000) / elapsed;
   }
 
   _moreInfo(entityId) {
@@ -207,7 +228,7 @@ class BatteryRoiCard extends LitElement {
     const soc = socId ? this._num(socId) : this._attrNum(rateAttrs.soc);
     const price = priceId ? this._num(priceId) : this._attrNum(rateAttrs.price);
     const solar = this._attrNum(rateAttrs.solar_kw);
-    const pace = this._pace(this._num(c.monthly));
+    const pace = this._pace(c.monthly);
     const payback = this._num(c.payback);
     const efficiency = this._num(c.efficiency);
     const rateTrend = this._trend(rate);
@@ -226,7 +247,7 @@ class BatteryRoiCard extends LitElement {
           ${this._tile(t.month, c.monthly, t.lastMonth)}
           ${this.hass.states[c.total] ? this._tile(t.total, c.total, undefined, "wide") : nothing}
         </div>
-        <div class="ticker" @click=${() => this._moreInfo(c.rate)}>
+        <button class="ticker" @click=${() => this._moreInfo(c.rate)}>
           <span class="live ${rateTrend}">
             ${rateText} ${rate === null ? "" : `${this._money(Math.abs(rate))}/h`}
           </span>
@@ -235,7 +256,7 @@ class BatteryRoiCard extends LitElement {
             ${solar === null ? nothing : html`<span><ha-icon .icon=${"mdi:solar-power"}></ha-icon>${solar.toLocaleString(this._lang, { maximumFractionDigits: 1 })} kW</span>`}
             ${soc === null ? nothing : html`<span><ha-icon .icon=${"mdi:battery"}></ha-icon>${Math.round(soc)}%</span>`}
           </span>
-        </div>
+        </button>
         ${pace === null && payback === null && efficiency === null
           ? nothing
           : html`<div class="outlook">
@@ -250,7 +271,8 @@ class BatteryRoiCard extends LitElement {
   _paidBackOn(entity) {
     const on = this.hass.states[entity]?.attributes?.paid_back_on;
     if (!on) return "";
-    return `${new Date(on).toLocaleDateString(this._lang, { month: "short", year: "numeric" })} `;
+    // A plain date: read it as local midnight, not UTC, or it can show the month before.
+    return `${new Date(`${on}T00:00`).toLocaleDateString(this._lang, { month: "short", year: "numeric" })} `;
   }
 
   static styles = css`
@@ -271,15 +293,23 @@ class BatteryRoiCard extends LitElement {
       padding: 0 16px 16px;
       color: var(--secondary-text-color);
     }
+:host {
+      container-type: inline-size;
+    }
     .tiles {
       display: grid;
       /* Today and month side by side (stacked when narrow), lifetime full width below. */
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: 1fr 1fr;
       gap: 12px;
       padding: 0 16px 12px;
     }
     .tile.wide {
       grid-column: 1 / -1;
+    }
+    @container (max-width: 340px) {
+      .tiles {
+        grid-template-columns: 1fr;
+      }
     }
     .tile {
       display: flex;
@@ -326,8 +356,14 @@ class BatteryRoiCard extends LitElement {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      width: 100%;
       padding: 12px 16px;
+      border: none;
       border-top: 1px solid var(--divider-color);
+      background: none;
+      color: inherit;
+      font: inherit;
+      text-align: left;
       cursor: pointer;
     }
     .live {
@@ -341,6 +377,7 @@ class BatteryRoiCard extends LitElement {
     }
     .meta span {
       display: flex;
+      white-space: nowrap;
       align-items: center;
       gap: 2px;
     }
