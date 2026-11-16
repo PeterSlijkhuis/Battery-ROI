@@ -75,6 +75,7 @@ Write down the names of the sensors you'll pick in step 4.
 | Battery discharge power | `battery` + `power`, or your battery brand | Watts that come **out of** the battery. Skip if the sensor above is signed |
 | Electricity price *(required, or a peak price)* | `price`, `tibber`, `nordpool`, `epex` | Your current price per kWh |
 | Grid power *(recommended)* | `grid`, `p1`, `net`, `power_consumption` | Your smart meter or energy monitor: watts from (+) or to (−) the grid |
+| Grid export power | `power_production`, `export` | Only if your meter has a separate sensor for exported watts; then pick the import sensor as grid power |
 | Feed-in price *(recommended)* | `price` | What you get per exported kWh. With a dynamic contract this is often the same price sensor |
 | Solar production | `solar`, `pv`, `inverter` | Watts your panels produce right now |
 | Battery level | `battery` + `level`, `soc`, `state_of_charge` | Battery % |
@@ -85,11 +86,11 @@ Write down the names of the sensors you'll pick in step 4.
 | --- | --- | --- |
 | Battery | EcoFlow, Zendure, Anker SOLIX | separate *input* / *output* power sensors → fill both charge and discharge |
 | Battery | Marstek, Victron, Huawei, SolarEdge, Sessy, Tesla Powerwall | one *battery power* sensor, positive one way and negative the other → fill charge only and set *Positive power means* |
-| Grid | DSMR / Slimme meter, HomeWizard P1, P1 Monitor, Shelly EM, Tibber Pulse | *power consumption* minus *power production*, or one signed *active power* sensor |
+| Grid | DSMR / Slimme meter, HomeWizard P1, P1 Monitor, Shelly EM, Tibber Pulse | *power consumption* as grid power plus *power production* as grid export power, or one signed *active power* sensor |
 | Solar | Enphase, SolarEdge, SMA, Growatt, Fronius, APsystems | *current power* or *AC power* of the inverter |
 | Price | Nordpool, ENTSO-e, EnergyZero, Tibber, Frank Energie, Zonneplan, Octopus | *current price* |
 
-Your grid meter (or battery) only has two separate sensors, one per direction, and you want one signed sensor? Make one with a [template helper](https://my.home-assistant.io/redirect/helpers/) (**Settings → Devices & services → Helpers → Create helper → Template → Template sensor**, state `{{ states('sensor.power_consumption')|float(0) - states('sensor.power_production')|float(0) }}`, unit W, device class Power).
+Your grid meter has two separate sensors, one per direction? Pick the import one as *Grid power* and the export one as *Grid export power*. A battery with two sensors goes in *charge* and *discharge*. Prefer one signed sensor anyway? Make one with a [template helper](https://my.home-assistant.io/redirect/helpers/) (**Settings → Devices & services → Helpers → Create helper → Template → Template sensor**, state `{{ states('sensor.power_consumption')|float(0) - states('sensor.power_production')|float(0) }}`, unit W, device class Power).
 
 > **Not sure which way a signed sensor goes?** Open it (click the name) while the battery is charging. Positive number = "positive means charging".
 
@@ -161,6 +162,7 @@ All fields explained:
 | | Feed-in costs per kWh | | What your supplier charges per exported kWh (*terugleverkosten*), all-in. Counts under net metering too. Needs grid power |
 | | Net metering until | | The day net metering ends for you. Before it the feed-in price is ignored, after it it counts. Optional; leave empty if you have no net metering |
 | Grid and solar | Grid power | | Smart meter or energy monitor, + import / − export |
+| | Grid export power | | Only for meters with a separate export sensor; grid power is then the import sensor |
 | | Solar production | | Shown on the card |
 | Battery costs | Standby power | | Watts the battery uses itself that its power sensors miss |
 | | Wear cost per kWh discharged | | Purchase price ÷ (capacity in kWh × rated cycles) |

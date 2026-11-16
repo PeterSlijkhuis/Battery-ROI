@@ -61,10 +61,12 @@
             "name": "Grid and solar (recommended)",
             "data": {
               "grid_power": "Grid power",
+              "grid_export_power": "Grid export power",
               "solar_power": "Solar production"
             },
             "data_description": {
               "grid_power": "Your smart meter or energy monitor (DSMR, HomeWizard P1, Shelly EM, Tibber Pulse…): positive when importing, negative when exporting. With a feed-in price this tells whether the battery avoided buying or selling.",
+              "grid_export_power": "Only if your meter has a separate sensor for exported power (DSMR power production). Then pick the import sensor above as grid power; both are positive and Battery ROI subtracts them.",
               "solar_power": "Optional, shown on the card."
             }
           },
@@ -156,10 +158,12 @@
             "name": "Grid and solar (recommended)",
             "data": {
               "grid_power": "Grid power",
+              "grid_export_power": "Grid export power",
               "solar_power": "Solar production"
             },
             "data_description": {
               "grid_power": "Your smart meter or energy monitor (DSMR, HomeWizard P1, Shelly EM, Tibber Pulse…): positive when importing, negative when exporting. With a feed-in price this tells whether the battery avoided buying or selling.",
+              "grid_export_power": "Only if your meter has a separate sensor for exported power (DSMR power production). Then pick the import sensor above as grid power; both are positive and Battery ROI subtracts them.",
               "solar_power": "Optional, shown on the card."
             }
           },

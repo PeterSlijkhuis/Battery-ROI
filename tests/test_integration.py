@@ -370,3 +370,21 @@ async def test_backfill_reads_only_what_the_profit_needs(hass: HomeAssistant, fr
     assert load.call_args.args[1] == ["sensor.ecoflow_power", "sensor.tariff"]
     hub = hass.config_entries.async_entries(DOMAIN)[0].runtime_data
     assert hub.acc.totals.backfilled_from == "2026-09-01"
+
+
+async def test_separate_import_and_export_grid_sensors(hass: HomeAssistant, freezer) -> None:
+    """Import minus export gives the same answer as one signed grid sensor."""
+    freezer.move_to("2026-09-26 12:00:00+02:00")
+    hass.states.async_set("sensor.ecoflow_power", "-1000", {"unit_of_measurement": "W"})
+    hass.states.async_set("sensor.tariff", "0.30", {"unit_of_measurement": "EUR/kWh"})
+    hass.states.async_set("sensor.grid_import", "0", {"unit_of_measurement": "W"})
+    hass.states.async_set("sensor.grid_export", "2", {"unit_of_measurement": "kW"})  # still exporting
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+    await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        _nest({**INPUT, "grid_power": "sensor.grid_import", "grid_export_power": "sensor.grid_export", "feed_in_fixed": 0.05}),
+    )
+    await _run(hass, freezer, TICK)
+    rate = hass.states.get("sensor.battery_roi_rate")
+    assert float(rate.state) == pytest.approx(-0.05)
+    assert rate.attributes["grid_kw"] == pytest.approx(-2)

@@ -20,6 +20,7 @@ from .const import (
     CONF_FEED_IN_COST,
     CONF_FEED_IN_FIXED,
     CONF_FEED_IN_PRICE,
+    CONF_GRID_EXPORT_POWER,
     CONF_GRID_POWER,
     CONF_INSTALL_DATE,
     CONF_NET_METERING_UNTIL,
@@ -88,6 +89,7 @@ SECTIONS: dict[str, tuple[bool, dict]] = {
     }),
     "grid": (True, {
         vol.Optional(CONF_GRID_POWER): _POWER,
+        vol.Optional(CONF_GRID_EXPORT_POWER): _POWER,
         vol.Optional(CONF_SOLAR_POWER): _POWER,
     }),
     "costs": (True, {

@@ -31,6 +31,7 @@ from .const import (
     CONF_FEED_IN_COST,
     CONF_FEED_IN_FIXED,
     CONF_FEED_IN_PRICE,
+    CONF_GRID_EXPORT_POWER,
     CONF_GRID_POWER,
     CONF_INSTALL_DATE,
     CONF_NET_METERING_UNTIL,
@@ -57,7 +58,10 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [Platform.BUTTON, Platform.SENSOR]
 TICK = timedelta(seconds=30)
 # Charge power first: backfill reads from its statistics when Home Assistant ran.
-_PROFIT_KEYS = (CONF_CHARGE_POWER, CONF_DISCHARGE_POWER, CONF_PRICE, CONF_FEED_IN_PRICE, CONF_GRID_POWER)
+_PROFIT_KEYS = (
+    CONF_CHARGE_POWER, CONF_DISCHARGE_POWER, CONF_PRICE, CONF_FEED_IN_PRICE,
+    CONF_GRID_POWER, CONF_GRID_EXPORT_POWER,
+)
 # Samples keep postponing a delayed save, so also save on a fixed beat
 # in case Home Assistant stops without a clean shutdown.
 SAVE_EVERY = timedelta(minutes=5)
@@ -270,6 +274,10 @@ class BatteryRoiHub:
         if cost and price is not None:
             feed_in = (price if feed_in is None else feed_in) - cost
         grid = read(CONF_GRID_POWER, _kw)
+        if self.config.get(CONF_GRID_EXPORT_POWER):
+            # Separate import and export sensors, both positive.
+            export = read(CONF_GRID_EXPORT_POWER, _kw)
+            grid = None if grid is None or export is None else grid - export
 
         charge = read(CONF_CHARGE_POWER, _kw)
         if self.config.get(CONF_DISCHARGE_POWER):
