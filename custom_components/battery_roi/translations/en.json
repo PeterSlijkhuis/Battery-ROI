@@ -203,6 +203,32 @@
       "reset_totals": {
         "name": "Reset totals"
       }
+    },
+    "sensor": {
+      "rate": {
+        "name": "Rate"
+      },
+      "profit_total": {
+        "name": "Profit total"
+      },
+      "profit_today": {
+        "name": "Profit today"
+      },
+      "profit_this_month": {
+        "name": "Profit this month"
+      },
+      "energy_charged": {
+        "name": "Energy charged"
+      },
+      "energy_discharged": {
+        "name": "Energy discharged"
+      },
+      "efficiency": {
+        "name": "Efficiency"
+      },
+      "payback": {
+        "name": "Payback"
+      }
     }
   }
 }

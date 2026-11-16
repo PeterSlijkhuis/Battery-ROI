@@ -6,14 +6,18 @@ import { LitElement, html, css, nothing } from "./lit.js";
 // Must match VERSION in const.py (a test checks this).
 const CARD_VERSION = "0.6.1";
 
+// The integration's sensors, found by their key so renamed entities still work.
+const KEYS = {
+  daily: "profit_today",
+  monthly: "profit_this_month",
+  total: "profit_total",
+  rate: "rate",
+  payback: "payback",
+  efficiency: "efficiency",
+};
+
 const DEFAULTS = {
   title: "Battery ROI",
-  daily: "sensor.battery_roi_profit_today",
-  monthly: "sensor.battery_roi_profit_this_month",
-  total: "sensor.battery_roi_profit_total",
-  rate: "sensor.battery_roi_rate",
-  payback: "sensor.battery_roi_payback",
-  efficiency: "sensor.battery_roi_efficiency",
   // Price and state of charge come from the rate sensor's attributes
   // unless you point these at other entities.
   soc: null,
@@ -108,6 +112,16 @@ class BatteryRoiCard extends LitElement {
     return 3;
   }
 
+  // The configured entity, else the integration's own sensor for this field.
+  _id(field) {
+    if (this._config[field]) return this._config[field];
+    const key = KEYS[field];
+    const found = Object.values(this.hass.entities ?? {}).find(
+      (e) => e.platform === "battery_roi" && e.translation_key === key
+    );
+    return found?.entity_id ?? `sensor.battery_roi_${key}`;
+  }
+
   _num(entityId) {
     const value = parseFloat(this.hass?.states[entityId]?.state);
     return Number.isFinite(value) ? value : null;
@@ -181,15 +195,17 @@ class BatteryRoiCard extends LitElement {
 
   render() {
     if (!this.hass || !this._config) return nothing;
-    const c = this._config;
+    const c = Object.fromEntries(Object.keys(KEYS).map((field) => [field, this._id(field)]));
+    c.title = this._config.title;
     const t = this._t;
     if (!this.hass.states[c.daily]) {
       return html`<ha-card .header=${c.title}><div class="missing">${t.missing}</div></ha-card>`;
     }
     const rate = this._num(c.rate);
     const rateAttrs = this.hass.states[c.rate]?.attributes ?? {};
-    const soc = c.soc ? this._num(c.soc) : this._attrNum(rateAttrs.soc);
-    const price = c.price ? this._num(c.price) : this._attrNum(rateAttrs.price);
+    const { soc: socId, price: priceId } = this._config;
+    const soc = socId ? this._num(socId) : this._attrNum(rateAttrs.soc);
+    const price = priceId ? this._num(priceId) : this._attrNum(rateAttrs.price);
     const solar = this._attrNum(rateAttrs.solar_kw);
     const pace = this._pace(this._num(c.monthly));
     const payback = this._num(c.payback);
@@ -208,7 +224,7 @@ class BatteryRoiCard extends LitElement {
         <div class="tiles">
           ${this._tile(t.today, c.daily, t.yesterday)}
           ${this._tile(t.month, c.monthly, t.lastMonth)}
-          ${c.total && this.hass.states[c.total] ? this._tile(t.total, c.total, undefined, "wide") : nothing}
+          ${this.hass.states[c.total] ? this._tile(t.total, c.total, undefined, "wide") : nothing}
         </div>
         <div class="ticker" @click=${() => this._moreInfo(c.rate)}>
           <span class="live ${rateTrend}">

@@ -29,9 +29,9 @@ async def async_setup_entry(
     hub: BatteryRoiHub = entry.runtime_data
     currency = hass.config.currency
 
-    def money(key: str, name: str, value, attrs=None, last_reset=None):
+    def money(key: str, value, attrs=None, last_reset=None):
         return RoiSensor(
-            hub, entry, key, name, value, attrs,
+            hub, entry, key, value, attrs,
             unit=currency, device_class=SensorDeviceClass.MONETARY, state_class=SensorStateClass.TOTAL,
             last_reset=last_reset,
         )
@@ -44,7 +44,7 @@ async def async_setup_entry(
 
     entities = [
         RateSensor(
-            hub, entry, "rate", "Rate",
+            hub, entry, "rate",
             lambda: _round(hub.acc.rate(), 4),
             # The card compares this with its own version to spot a stale browser copy.
             lambda: {**hub.live, "version": VERSION},
@@ -52,38 +52,38 @@ async def async_setup_entry(
             precision=2,
         ),
         money(
-            "profit_total", "Profit total",
+            "profit_total",
             lambda: _round(hub.acc.totals.profit),
             lambda: {"tracking_since": hub.acc.totals.since},
             reset_at,
         ),
         money(
-            "profit_today", "Profit today",
+            "profit_today",
             lambda: _round(hub.acc.totals.today),
             lambda: {"last_period": _round(hub.acc.totals.yesterday)},
             # Without it, statistics book the midnight drop to 0 as a loss.
             lambda: _start_of(hub.acc.totals.day),
         ),
         money(
-            "profit_this_month", "Profit this month",
+            "profit_this_month",
             lambda: _round(hub.acc.totals.month),
             lambda: {"last_period": _round(hub.acc.totals.last_month)},
             lambda: _start_of(hub.acc.totals.month_key and f"{hub.acc.totals.month_key}-01"),
         ),
         RoiSensor(
-            hub, entry, "energy_charged", "Energy charged",
+            hub, entry, "energy_charged",
             lambda: _round(hub.acc.totals.energy_in, 3), None,
             unit=UnitOfEnergy.KILO_WATT_HOUR, device_class=SensorDeviceClass.ENERGY,
             state_class=SensorStateClass.TOTAL, last_reset=reset_at,
         ),
         RoiSensor(
-            hub, entry, "energy_discharged", "Energy discharged",
+            hub, entry, "energy_discharged",
             lambda: _round(hub.acc.totals.energy_out, 3), None,
             unit=UnitOfEnergy.KILO_WATT_HOUR, device_class=SensorDeviceClass.ENERGY,
             state_class=SensorStateClass.TOTAL, last_reset=reset_at,
         ),
         RoiSensor(
-            hub, entry, "efficiency", "Efficiency",
+            hub, entry, "efficiency",
             lambda: _round(hub.acc.efficiency(), 1), None,
             unit=PERCENTAGE, state_class=SensorStateClass.MEASUREMENT, icon="mdi:battery-sync",
         ),
@@ -92,7 +92,7 @@ async def async_setup_entry(
         cost = hub.config[CONF_BATTERY_COST]
         entities.append(
             RoiSensor(
-                hub, entry, "payback", "Payback",
+                hub, entry, "payback",
                 lambda: _round(hub.acc.payback_years(cost, dt_util.now()), 1),
                 lambda: {
                     "battery_cost": cost,
@@ -129,7 +129,6 @@ class RoiSensor(SensorEntity):
         hub: BatteryRoiHub,
         entry: ConfigEntry,
         key: str,
-        name: str,
         value: Callable[[], Any],
         attrs: Callable[[], dict] | None,
         *,
@@ -144,7 +143,9 @@ class RoiSensor(SensorEntity):
         self._value = value
         self._attrs = attrs
         self._last_reset = last_reset
-        self._attr_name = name
+        self._attr_translation_key = key
+        # English ids in every language, so dashboards and the card's defaults keep working.
+        self.entity_id = f"sensor.{DOMAIN}_{key}"
         self._attr_unique_id = f"{entry.entry_id}_{key}"
         self._attr_native_unit_of_measurement = unit
         self._attr_device_class = device_class

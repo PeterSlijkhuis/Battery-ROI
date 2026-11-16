@@ -27,6 +27,7 @@ class ResetButton(ButtonEntity):
     def __init__(self, entry: ConfigEntry) -> None:
         self._entry = entry
         self._attr_unique_id = f"{entry.entry_id}_reset_totals"
+        self.entity_id = f"button.{DOMAIN}_reset_totals"  # English in every language
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name="Battery ROI",

@@ -203,6 +203,32 @@
       "reset_totals": {
         "name": "Totalen resetten"
       }
+    },
+    "sensor": {
+      "rate": {
+        "name": "Opbrengst per uur"
+      },
+      "profit_total": {
+        "name": "Winst totaal"
+      },
+      "profit_today": {
+        "name": "Winst vandaag"
+      },
+      "profit_this_month": {
+        "name": "Winst deze maand"
+      },
+      "energy_charged": {
+        "name": "Energie geladen"
+      },
+      "energy_discharged": {
+        "name": "Energie ontladen"
+      },
+      "efficiency": {
+        "name": "Rendement"
+      },
+      "payback": {
+        "name": "Terugverdientijd"
+      }
     }
   }
 }

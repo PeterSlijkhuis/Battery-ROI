@@ -388,3 +388,11 @@ async def test_separate_import_and_export_grid_sensors(hass: HomeAssistant, free
     rate = hass.states.get("sensor.battery_roi_rate")
     assert float(rate.state) == pytest.approx(-0.05)
     assert rate.attributes["grid_kw"] == pytest.approx(-2)
+
+
+async def test_dutch_names_keep_english_entity_ids(hass: HomeAssistant, freezer) -> None:
+    """The card finds its sensors by entity id, so a Dutch install must not rename them."""
+    hass.config.language = "nl"
+    await _setup(hass, freezer)
+    today = hass.states.get("sensor.battery_roi_profit_today")
+    assert today.attributes["friendly_name"] == "Battery ROI Winst vandaag"
