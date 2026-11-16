@@ -8,7 +8,7 @@
 
 A Home Assistant integration that multiplies every kWh your battery charges and discharges by the price at that exact moment, and shows the result as a live profit ticker.
 
-[![HACS Custom](https://img.shields.io/badge/HACS-Custom-41BDF5?logo=homeassistantcommunitystore&logoColor=white)](https://hacs.xyz/docs/faq/custom_repositories/)
+[![HACS Default](https://img.shields.io/badge/HACS-Default-41BDF5?logo=homeassistantcommunitystore&logoColor=white)](https://hacs.xyz/)
 [![Home Assistant 2024.11+](https://img.shields.io/badge/Home%20Assistant-2024.11%2B-18BCF2?logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
 [![CI](https://github.com/PeterSlijkhuis/Battery-ROI/actions/workflows/ci.yml/badge.svg)](https://github.com/PeterSlijkhuis/Battery-ROI/actions/workflows/ci.yml)
 ![Version](https://img.shields.io/github/v/release/PeterSlijkhuis/Battery-ROI)
@@ -100,10 +100,17 @@ Your grid meter (or battery) only has two separate sensors, one per direction, a
 Click the button above and choose your Home Assistant, **or** do it by hand:
 
 1. Open **HACS** in the sidebar.
-2. Click **⋮** (top right) → **Custom repositories**.
-3. Paste `https://github.com/PeterSlijkhuis/Battery-ROI`, pick type **Integration**, click **Add**.
-4. Search HACS for **Battery ROI**, open it, click **Download** (bottom right).
-5. HACS asks which version: keep the newest (for example `v0.2.1`) and click **Download**.
+2. Search for **Battery ROI** and open it.
+3. Click **Download** (bottom right).
+4. HACS asks which version: keep the newest and click **Download**.
+
+<details>
+<summary>Battery ROI not found in HACS? Add it as a custom repository</summary>
+
+1. In **HACS**, click **⋮** (top right) → **Custom repositories**.
+2. Paste `https://github.com/PeterSlijkhuis/Battery-ROI`, pick type **Integration**, click **Add**.
+3. Search HACS for **Battery ROI** again, open it and click **Download**.
+</details>
 
 <details>
 <summary>No HACS? Install by hand</summary>
