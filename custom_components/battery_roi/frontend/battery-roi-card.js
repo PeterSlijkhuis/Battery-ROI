@@ -4,7 +4,7 @@
 import { LitElement, html, css, nothing } from "./lit.js";
 
 // Must match VERSION in const.py (a test checks this).
-const CARD_VERSION = "0.7.0";
+const CARD_VERSION = "1.0.0";
 
 // The integration's sensors, found by their key so renamed entities still work.
 const KEYS = {
