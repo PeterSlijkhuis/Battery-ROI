@@ -4,7 +4,6 @@ import pytest
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
-from homeassistant.util import dt as dt_util
 from pytest_homeassistant_custom_component.common import async_fire_time_changed
 
 from custom_components.battery_roi.config_flow import _nest
@@ -414,3 +413,44 @@ async def test_diagnostics_show_sources_and_totals(hass: HomeAssistant, freezer)
     diag = await async_get_config_entry_diagnostics(hass, entry)
     assert diag["sources"]["price"] == {"entity_id": "sensor.tariff", "state": "12", "unit": "ct/kWh"}
     assert diag["totals"]["profit"] == 0
+
+
+async def test_midnight_moves_today_to_yesterday(hass: HomeAssistant, freezer) -> None:
+    await hass.config.async_set_time_zone("Europe/Amsterdam")
+    freezer.move_to("2026-10-24 23:00:00+02:00")
+    await _setup(hass, freezer)
+    hass.states.async_set("sensor.ecoflow_power", "1000", {"unit_of_measurement": "W"})  # discharging at 0.12
+    await _run(hass, freezer, timedelta(hours=1))
+    today = hass.states.get("sensor.battery_roi_profit_today")
+    assert float(today.state) < 0.01
+    assert today.attributes["last_period"] == pytest.approx(0.12, abs=0.01)
+    assert today.attributes["last_reset"].startswith("2026-10-25T00:00:00")
+
+
+async def test_options_change_cancels_a_running_backfill(hass: HomeAssistant, freezer) -> None:
+    """The old hub's replay must not land after the entry was reloaded."""
+    import asyncio
+    from unittest.mock import patch
+
+    freezer.move_to("2026-09-26 10:00:00+02:00")
+    hass.config.components.add("recorder")
+    started = asyncio.Event()
+
+    async def never(*args):
+        started.set()
+        await asyncio.Event().wait()
+
+    with patch("custom_components.battery_roi.backfill.async_load", never):
+        hass.states.async_set("sensor.ecoflow_power", "0", {"unit_of_measurement": "W"})
+        hass.states.async_set("sensor.tariff", "12", {"unit_of_measurement": "ct/kWh"})
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+        await hass.config_entries.flow.async_configure(
+            result["flow_id"], _nest({**INPUT, "install_date": "2026-09-01"})
+        )
+        await started.wait()
+        entry = hass.config_entries.async_entries(DOMAIN)[0]
+        tasks = set(entry._background_tasks)
+        assert tasks
+        assert await hass.config_entries.async_unload(entry.entry_id)
+        await asyncio.sleep(0)
+        assert all(task.done() for task in tasks)
