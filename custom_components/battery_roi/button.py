@@ -3,17 +3,21 @@
 from __future__ import annotations
 
 from homeassistant.components.button import ButtonEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from . import BatteryRoiConfigEntry
 from .const import DOMAIN, VERSION
 
 
+# Entities only read the hub's memory, so updates never need to wait for each other.
+PARALLEL_UPDATES = 0
+
+
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: BatteryRoiConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     async_add_entities([ResetButton(entry)])
 
@@ -24,7 +28,7 @@ class ResetButton(ButtonEntity):
     _attr_entity_category = EntityCategory.CONFIG
     _attr_icon = "mdi:restore"
 
-    def __init__(self, entry: ConfigEntry) -> None:
+    def __init__(self, entry: BatteryRoiConfigEntry) -> None:
         self._entry = entry
         self._attr_unique_id = f"{entry.entry_id}_reset_totals"
         self.entity_id = f"button.{DOMAIN}_reset_totals"  # English in every language

@@ -11,7 +11,6 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
@@ -19,14 +18,18 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from . import BatteryRoiHub
+from . import BatteryRoiConfigEntry, BatteryRoiHub
 from .const import CONF_BATTERY_COST, DOMAIN, VERSION
 
 
+# Entities only read the hub's memory, so updates never need to wait for each other.
+PARALLEL_UPDATES = 0
+
+
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: BatteryRoiConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    hub: BatteryRoiHub = entry.runtime_data
+    hub = entry.runtime_data
     currency = hass.config.currency
 
     def money(key: str, value, attrs=None, last_reset=None):
@@ -127,7 +130,7 @@ class RoiSensor(SensorEntity):
     def __init__(
         self,
         hub: BatteryRoiHub,
-        entry: ConfigEntry,
+        entry: BatteryRoiConfigEntry,
         key: str,
         value: Callable[[], Any],
         attrs: Callable[[], dict] | None,

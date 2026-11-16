@@ -57,6 +57,8 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [Platform.BUTTON, Platform.SENSOR]
 TICK = timedelta(seconds=30)
+
+type BatteryRoiConfigEntry = ConfigEntry[BatteryRoiHub]
 # Charge power first: backfill reads from its statistics when Home Assistant ran.
 _PROFIT_KEYS = (
     CONF_CHARGE_POWER, CONF_DISCHARGE_POWER, CONF_PRICE, CONF_FEED_IN_PRICE,
@@ -97,7 +99,7 @@ async def _async_remove_local_copy(hass: HomeAssistant) -> None:
     await done.async_save({"version": VERSION})
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: BatteryRoiConfigEntry) -> bool:
     hub = BatteryRoiHub(hass, entry)
     await hub.async_start()
     entry.runtime_data = hub
@@ -106,14 +108,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: BatteryRoiConfigEntry) -> bool:
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unloaded:
         await entry.runtime_data.async_stop()
     return unloaded
 
 
-async def _async_reload(hass: HomeAssistant, entry: ConfigEntry) -> None:
+async def _async_reload(hass: HomeAssistant, entry: BatteryRoiConfigEntry) -> None:
     await hass.config_entries.async_reload(entry.entry_id)
 
 

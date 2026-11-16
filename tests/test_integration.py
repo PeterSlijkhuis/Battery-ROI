@@ -396,3 +396,13 @@ async def test_dutch_names_keep_english_entity_ids(hass: HomeAssistant, freezer)
     await _setup(hass, freezer)
     today = hass.states.get("sensor.battery_roi_profit_today")
     assert today.attributes["friendly_name"] == "Battery ROI Winst vandaag"
+
+
+async def test_diagnostics_show_sources_and_totals(hass: HomeAssistant, freezer) -> None:
+    from custom_components.battery_roi.diagnostics import async_get_config_entry_diagnostics
+
+    await _setup(hass, freezer)
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    diag = await async_get_config_entry_diagnostics(hass, entry)
+    assert diag["sources"]["price"] == {"entity_id": "sensor.tariff", "state": "12", "unit": "ct/kWh"}
+    assert diag["totals"]["profit"] == 0
