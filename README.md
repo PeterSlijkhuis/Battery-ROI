@@ -386,10 +386,11 @@ Yes. All numbers are ordinary sensors, so Mushroom, Tile or any other card works
 
 ```bash
 pip install -r requirements_test.txt
+ruff check .
 pytest
 ```
 
-CI runs Home Assistant's `hassfest` validation and the test suite on every pull request. The screenshots above come from a real Home Assistant 2026.2 with demo sensors.
+CI runs Home Assistant's `hassfest` validation, `ruff check` and the test suite on every pull request. The test requirements are pinned; bump `pytest-homeassistant-custom-component` on purpose when you want a newer Home Assistant to test against. The screenshots above come from a real Home Assistant 2026.2 with demo sensors.
 
 ## License
 
