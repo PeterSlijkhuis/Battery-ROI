@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -29,10 +29,11 @@ async def async_setup_entry(
     hub: BatteryRoiHub = entry.runtime_data
     currency = hass.config.currency
 
-    def money(key: str, name: str, value, attrs=None, state_class=SensorStateClass.TOTAL):
+    def money(key: str, name: str, value, attrs=None, last_reset=None):
         return RoiSensor(
             hub, entry, key, name, value, attrs,
-            unit=currency, device_class=SensorDeviceClass.MONETARY, state_class=state_class,
+            unit=currency, device_class=SensorDeviceClass.MONETARY, state_class=SensorStateClass.TOTAL,
+            last_reset=last_reset,
         )
 
     entities = [
@@ -53,11 +54,14 @@ async def async_setup_entry(
             "profit_today", "Profit today",
             lambda: _round(hub.acc.totals.today),
             lambda: {"last_period": _round(hub.acc.totals.yesterday)},
+            # Without it, statistics book the midnight drop to 0 as a loss.
+            lambda: _start_of(hub.acc.totals.day),
         ),
         money(
             "profit_this_month", "Profit this month",
             lambda: _round(hub.acc.totals.month),
             lambda: {"last_period": _round(hub.acc.totals.last_month)},
+            lambda: _start_of(hub.acc.totals.month_key and f"{hub.acc.totals.month_key}-01"),
         ),
         RoiSensor(
             hub, entry, "energy_charged", "Energy charged",
@@ -100,6 +104,11 @@ def _paid_back_on(years: float | None) -> str | None:
     return (dt_util.now() + timedelta(days=years * 365.25)).date().isoformat()
 
 
+def _start_of(day: str | None) -> datetime | None:
+    """Local midnight at the start of an ISO date."""
+    return None if day is None else dt_util.start_of_local_day(date.fromisoformat(day))
+
+
 def _round(value: float | None, digits: int = 2) -> float | None:
     return None if value is None else round(value, digits)
 
@@ -122,10 +131,12 @@ class RoiSensor(SensorEntity):
         state_class: SensorStateClass | None = None,
         icon: str | None = None,
         precision: int | None = None,
+        last_reset: Callable[[], datetime | None] | None = None,
     ) -> None:
         self._hub = hub
         self._value = value
         self._attrs = attrs
+        self._last_reset = last_reset
         self._attr_name = name
         self._attr_unique_id = f"{entry.entry_id}_{key}"
         self._attr_native_unit_of_measurement = unit
@@ -148,6 +159,10 @@ class RoiSensor(SensorEntity):
     @property
     def native_value(self):
         return self._value()
+
+    @property
+    def last_reset(self) -> datetime | None:
+        return self._last_reset() if self._last_reset else None
 
     @property
     def extra_state_attributes(self) -> dict | None:

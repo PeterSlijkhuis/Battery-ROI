@@ -64,6 +64,10 @@ async def test_setup_screen_and_profit(hass: HomeAssistant, freezer) -> None:
     assert float(hass.states.get("sensor.battery_roi_energy_charged").state) == pytest.approx(2)
     assert float(hass.states.get("sensor.battery_roi_energy_discharged").state) == pytest.approx(1.5)
     assert hass.states.get("sensor.battery_roi_payback") is not None
+    # Statistics need to know the daily and monthly totals start over.
+    assert today.attributes["last_reset"].startswith("2026-09-26T00:00:00")
+    month = hass.states.get("sensor.battery_roi_profit_this_month")
+    assert month.attributes["last_reset"].startswith("2026-09-01T00:00:00")
 
 
 async def test_second_instance_blocked_and_same_sensor_rejected(hass: HomeAssistant, freezer) -> None:
