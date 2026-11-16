@@ -145,6 +145,7 @@ class BatteryRoiHub:
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         self.hass = hass
+        self.entry = entry
         # Options replace the original answers wholesale, so cleared fields stay cleared.
         self.config = dict(entry.options or entry.data)
         self.signal = f"{DOMAIN}_{entry.entry_id}"
@@ -163,7 +164,8 @@ class BatteryRoiHub:
         self._sample()
         install = self.config.get(CONF_INSTALL_DATE)
         if install and self.acc.totals.backfilled_from != install and "recorder" in self.hass.config.components:
-            self.hass.async_create_background_task(self._async_backfill(install), f"{DOMAIN} backfill")
+            # Tied to the entry so an unload (options change) cancels it.
+            self.entry.async_create_background_task(self.hass, self._async_backfill(install), f"{DOMAIN} backfill")
 
     @property
     def _watched(self) -> list[str]:
@@ -177,6 +179,7 @@ class BatteryRoiHub:
         """Replace the totals with a replay of the recorded history since the install date."""
         start = dt_util.as_utc(datetime.combine(datetime.fromisoformat(install).date(), time(), dt_util.get_default_time_zone()))
         end = dt_util.utcnow()
+        before = self.acc
         try:
             points, running = await backfill.async_load(self.hass, self._watched, start, end)
             acc, first = await self.hass.async_add_executor_job(
@@ -184,6 +187,9 @@ class BatteryRoiHub:
             )
         except Exception:  # noqa: BLE001 - history is a bonus; live tracking must keep running
             _LOGGER.exception("Could not read history for Battery ROI")
+            return
+        if self.acc is not before:
+            # Reset while the history was read: the user wants to start from now.
             return
         acc.totals.since = start.isoformat()
         acc.totals.backfilled_from = install
@@ -214,8 +220,8 @@ class BatteryRoiHub:
 
     async def async_reset(self) -> None:
         """Forget all totals; tracking starts again now."""
-        # Keep the backfill marker, or the next restart would replay the history again.
-        self.acc = Accumulator({"backfilled_from": self.acc.totals.backfilled_from})
+        # Mark the install date as handled, or the next restart would replay the history again.
+        self.acc = Accumulator({"backfilled_from": self.config.get(CONF_INSTALL_DATE)})
         self._sample()
         await self.store.async_save(self.acc.as_dict())
 

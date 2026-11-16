@@ -297,3 +297,34 @@ async def test_entities_refresh_on_the_tick_not_on_every_change(hass: HomeAssist
     from custom_components.battery_roi.sensor import RateSensor
 
     assert "grid_kw" in RateSensor._unrecorded_attributes
+
+
+async def test_reset_during_backfill_wins(hass: HomeAssistant, freezer) -> None:
+    """History that finishes loading after a reset must not overwrite the fresh totals."""
+    import asyncio
+    from unittest.mock import patch
+
+    freezer.move_to("2026-09-26 10:00:00+02:00")
+    hass.config.components.add("recorder")
+    release = asyncio.Event()
+
+    async def slow_load(*args):
+        await release.wait()
+        return {}, None
+
+    with patch("custom_components.battery_roi.backfill.async_load", slow_load):
+        hass.states.async_set("sensor.ecoflow_power", "0", {"unit_of_measurement": "W"})
+        hass.states.async_set("sensor.tariff", "12", {"unit_of_measurement": "ct/kWh"})
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+        await hass.config_entries.flow.async_configure(
+            result["flow_id"], _nest({**INPUT, "install_date": "2026-09-01"})
+        )
+        await hass.async_block_till_done(wait_background_tasks=False)
+        hub = hass.config_entries.async_entries(DOMAIN)[0].runtime_data
+        await hub.async_reset()
+        reset = hub.acc
+        release.set()
+        await hass.async_block_till_done(wait_background_tasks=True)
+
+    assert hub.acc is reset
+    assert hub.acc.totals.backfilled_from == "2026-09-01"
