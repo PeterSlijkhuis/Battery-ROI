@@ -37,7 +37,7 @@ async def async_setup_entry(
         )
 
     entities = [
-        RoiSensor(
+        RateSensor(
             hub, entry, "rate", "Rate",
             lambda: _round(hub.acc.rate(), 4),
             # The card compares this with its own version to spot a stale browser copy.
@@ -167,3 +167,8 @@ class RoiSensor(SensorEntity):
     @property
     def extra_state_attributes(self) -> dict | None:
         return self._attrs() if self._attrs else None
+
+
+class RateSensor(RoiSensor):
+    # Live readings for the card; recording them would add a row per update.
+    _unrecorded_attributes = frozenset({"price", "feed_in_price", "grid_kw", "solar_kw", "soc", "version"})

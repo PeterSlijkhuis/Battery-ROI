@@ -204,7 +204,9 @@ class BatteryRoiHub:
 
     @callback
     def _on_change(self, event: Event) -> None:
-        self._sample()
+        # Book every change, but only refresh the entities on the tick: a grid
+        # meter updating every second would otherwise fill the recorder.
+        self._sample(notify=False)
 
     @callback
     def _on_tick(self, now) -> None:
@@ -221,11 +223,12 @@ class BatteryRoiHub:
         await self.store.async_save(self.acc.as_dict())
 
     @callback
-    def _sample(self) -> None:
+    def _sample(self, notify: bool = True) -> None:
         sample, self.live = self._build(self.hass.states.get, dt_util.now())
         self.acc.update(dt_util.now(), sample)
         self.store.async_delay_save(self.acc.as_dict, 60)
-        async_dispatcher_send(self.hass, self.signal)
+        if notify:
+            async_dispatcher_send(self.hass, self.signal)
 
     def _build(self, get, at: datetime) -> tuple[Sample | None, dict[str, float | None]]:
         """Turn the chosen sensors' states (live or from history) into a sample."""

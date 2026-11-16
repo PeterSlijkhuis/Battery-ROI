@@ -10,6 +10,9 @@ from pytest_homeassistant_custom_component.common import async_fire_time_changed
 from custom_components.battery_roi.config_flow import _nest
 from custom_components.battery_roi.const import DOMAIN, VERSION
 
+TICK = timedelta(seconds=30)
+
+
 async def _run(hass: HomeAssistant, freezer, duration: timedelta) -> None:
     """Let time pass in 30 s ticks, like a running Home Assistant."""
     for _ in range(int(duration / timedelta(seconds=30))):
@@ -44,7 +47,7 @@ async def test_setup_screen_and_profit(hass: HomeAssistant, freezer) -> None:
 
     # Charging 2 kW at 12 ct for an hour (signed sensor, positive = discharging).
     hass.states.async_set("sensor.ecoflow_power", "-2000", {"unit_of_measurement": "W"})
-    await hass.async_block_till_done()
+    await _run(hass, freezer, TICK)
     rate = hass.states.get("sensor.battery_roi_rate")
     assert float(rate.state) == pytest.approx(-0.24)
     assert rate.attributes["price"] == pytest.approx(0.12)
@@ -165,12 +168,12 @@ async def test_solar_charging_costs_fixed_feed_in(hass: HomeAssistant, freezer) 
         result["flow_id"],
         _nest({**INPUT, "grid_power": "sensor.grid", "feed_in_fixed": 0.05}),
     )
-    await hass.async_block_till_done()
+    await _run(hass, freezer, TICK)
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.05)
 
     # Same charge, but now the house imports: it came from the grid at the full price.
     hass.states.async_set("sensor.grid", "1500", {"unit_of_measurement": "W"})
-    await hass.async_block_till_done()
+    await _run(hass, freezer, TICK)
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.30)
 
 
@@ -185,12 +188,12 @@ async def test_net_metering_ignores_feed_in_until_its_end(hass: HomeAssistant, f
         result["flow_id"],
         _nest({**INPUT, "grid_power": "sensor.grid", "feed_in_fixed": 0.05, "net_metering_until": "2027-01-01"}),
     )
-    await hass.async_block_till_done()
+    await _run(hass, freezer, TICK)
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.30)
 
     freezer.move_to("2027-01-01 12:00:00+01:00")
     hass.states.async_set("sensor.grid", "-2001", {"unit_of_measurement": "W"})
-    await hass.async_block_till_done()
+    await _run(hass, freezer, TICK)
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.05)
 
 
@@ -205,12 +208,12 @@ async def test_feed_in_costs_count_under_net_metering(hass: HomeAssistant, freez
         result["flow_id"],
         _nest({**INPUT, "grid_power": "sensor.grid", "feed_in_cost": 0.12, "net_metering_until": "2027-01-01"}),
     )
-    await hass.async_block_till_done()
+    await _run(hass, freezer, TICK)
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.18)
 
     # Grid charging still costs the full import price.
     hass.states.async_set("sensor.grid", "1500", {"unit_of_measurement": "W"})
-    await hass.async_block_till_done()
+    await _run(hass, freezer, TICK)
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.30)
 
 
@@ -228,18 +231,18 @@ async def test_fixed_day_and_night_price_without_sensor(hass: HomeAssistant, fre
         result["flow_id"],
         _nest({**no_price, "price_fixed": 0.30, "price_night": 0.20, "night_start": "23:00:00", "night_end": "07:00:00"}),
     )
-    await hass.async_block_till_done()
+    await _run(hass, freezer, TICK)
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.30)
 
     freezer.move_to("2026-09-25 23:30:00+02:00")
     hass.states.async_set("sensor.ecoflow_power", "-1001", {"unit_of_measurement": "W"})
-    await hass.async_block_till_done()
+    await _run(hass, freezer, TICK)
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.2002)
 
     # Saturday noon: weekends are off-peak by default.
     freezer.move_to("2026-09-26 12:00:00+02:00")
     hass.states.async_set("sensor.ecoflow_power", "-1000", {"unit_of_measurement": "W"})
-    await hass.async_block_till_done()
+    await _run(hass, freezer, TICK)
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.20)
 
 
@@ -249,11 +252,11 @@ async def test_fixed_price_covers_an_unavailable_sensor(hass: HomeAssistant, fre
     hass.states.async_set("sensor.tariff", "0.10", {"unit_of_measurement": "EUR/kWh"})
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
     await hass.config_entries.flow.async_configure(result["flow_id"], _nest({**INPUT, "price_fixed": 0.30}))
-    await hass.async_block_till_done()
+    await _run(hass, freezer, TICK)
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.10)
 
     hass.states.async_set("sensor.tariff", "unavailable")
-    await hass.async_block_till_done()
+    await _run(hass, freezer, TICK)
     assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.30)
 
 
@@ -278,3 +281,19 @@ async def test_reset_survives_a_restart_with_an_install_date(hass: HomeAssistant
         "button", "press", {"entity_id": "button.battery_roi_reset_totals"}, blocking=True
     )
     assert hub.acc.totals.backfilled_from == "2026-09-01"
+
+
+async def test_entities_refresh_on_the_tick_not_on_every_change(hass: HomeAssistant, freezer) -> None:
+    """A grid meter updating every second must not write a state row every second."""
+    freezer.move_to("2026-09-26 10:00:00+02:00")
+    await _setup(hass, freezer)
+    hass.states.async_set("sensor.ecoflow_power", "-2000", {"unit_of_measurement": "W"})
+    await hass.async_block_till_done()
+    assert float(hass.states.get("sensor.battery_roi_rate").state) == 0
+
+    await _run(hass, freezer, TICK)
+    assert float(hass.states.get("sensor.battery_roi_rate").state) == pytest.approx(-0.24)
+
+    from custom_components.battery_roi.sensor import RateSensor
+
+    assert "grid_kw" in RateSensor._unrecorded_attributes
