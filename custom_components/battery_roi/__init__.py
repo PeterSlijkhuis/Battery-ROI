@@ -233,9 +233,21 @@ class BatteryRoiHub:
     async def async_reset(self) -> None:
         """Forget all totals; tracking starts again now."""
         # Mark the install date as handled, or the next restart would replay the history again.
-        self.acc = Accumulator(
-            {"backfilled_from": self.config.get(CONF_INSTALL_DATE), "reset_at": dt_util.now().isoformat()}
-        )
+        previous = {**self.acc.as_dict(), "previous": None}
+        self.acc = Accumulator({
+            "backfilled_from": self.config.get(CONF_INSTALL_DATE),
+            "reset_at": dt_util.now().isoformat(),
+            "previous": previous,
+        })
+        self._sample()
+        await self.store.async_save(self.acc.as_dict())
+
+    async def async_undo_reset(self) -> None:
+        """Bring back the totals from before the last reset. What was booked since then is dropped."""
+        previous = self.acc.totals.previous
+        if previous is None:
+            return
+        self.acc = Accumulator({**previous, "reset_at": dt_util.now().isoformat()})
         self._sample()
         await self.store.async_save(self.acc.as_dict())
 

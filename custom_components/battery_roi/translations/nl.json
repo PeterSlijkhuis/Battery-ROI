@@ -202,6 +202,9 @@
     "button": {
       "reset_totals": {
         "name": "Totalen resetten"
+      },
+      "undo_reset": {
+        "name": "Reset ongedaan maken"
       }
     },
     "sensor": {

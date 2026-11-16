@@ -152,6 +152,14 @@ async def test_epex_surcharge_feed_in_and_p1(hass: HomeAssistant, freezer) -> No
     assert total.attributes["last_reset"]
     assert hass.states.get("sensor.battery_roi_energy_charged").attributes["last_reset"] == total.attributes["last_reset"]
 
+    # A press by mistake can be undone once.
+    assert hass.states.get("button.battery_roi_undo_reset").state != "unavailable"
+    await hass.services.async_call(
+        "button", "press", {"entity_id": "button.battery_roi_undo_reset"}, blocking=True
+    )
+    assert float(hass.states.get("sensor.battery_roi_profit_today").state) == pytest.approx(0.2, abs=0.01)
+    assert hass.states.get("button.battery_roi_undo_reset").state == "unavailable"
+
 
 def test_card_version_matches_integration():
     """The card shows a reload hint when these differ, so they must ship in step."""

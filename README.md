@@ -244,6 +244,7 @@ Tap a tile or the ticker to see its history graph.
 | Change which sensors are used | **Settings → Devices & services → Battery ROI → Configure** (your totals are kept) |
 | Fill in history from the day you got the battery | **Configure** → *Battery costs* → **Battery installed on**, see below |
 | Start the totals from zero | **Settings → Devices & services → Battery ROI → device → Reset totals → Press** |
+| Pressed Reset by mistake | Same place → **Undo reset → Press** |
 | See all Battery ROI numbers | **Settings → Devices & services → Battery ROI → device** |
 | See a number's history | Tap it on the card |
 | Change what the card shows | Edit the dashboard → click the card → **Edit** |
@@ -310,6 +311,7 @@ The **pace** line projects this month's profit to a full month, using the exact 
 | `sensor.battery_roi_efficiency` | Discharged ÷ charged, shown after 1 kWh |
 | `sensor.battery_roi_payback` | Years until the battery has paid for itself at the average rate so far. Attribute `paid_back_on` holds the expected date. Only exists if you entered a purchase cost; shown after 7 days with positive profit |
 | `button.battery_roi_reset_totals` | Start all totals from zero |
+| `button.battery_roi_undo_reset` | Bring back the totals from before the last reset. Only available right after a reset; what was booked since then is dropped |
 
 Totals survive restarts. Gaps longer than 15 minutes (Home Assistant down, sensor offline) are skipped rather than guessed.
 
