@@ -20,6 +20,7 @@ from .const import (
     CONF_FEED_IN_COST,
     CONF_FEED_IN_FIXED,
     CONF_FEED_IN_PRICE,
+    CONF_GRID_EXPORT_POWER,
     CONF_GRID_POWER,
     CONF_INSTALL_DATE,
     CONF_NET_METERING_UNTIL,
@@ -56,6 +57,7 @@ def _number(unit: str | None = None, step: float | str = "any", maximum: float |
     return selector.NumberSelector(config)
 
 
+# Money fields have no maximum: prices per kWh differ a lot between currencies.
 # Required fields sit in the open sections; extras are folded away.
 SECTIONS: dict[str, tuple[bool, dict]] = {
     "battery": (False, {
@@ -73,25 +75,26 @@ SECTIONS: dict[str, tuple[bool, dict]] = {
     }),
     "prices": (False, {
         vol.Optional(CONF_PRICE): _SENSOR,
-        vol.Optional(CONF_PRICE_SURCHARGE): _number(maximum=1),
+        vol.Optional(CONF_PRICE_SURCHARGE): _number(),
         vol.Optional(CONF_VAT): _number("%", 0.1, 100),
-        vol.Optional(CONF_PRICE_FIXED): _number(maximum=5),
-        vol.Optional(CONF_PRICE_NIGHT): _number(maximum=5),
+        vol.Optional(CONF_PRICE_FIXED): _number(),
+        vol.Optional(CONF_PRICE_NIGHT): _number(),
         vol.Optional(CONF_NIGHT_START, default="23:00:00"): selector.TimeSelector(),
         vol.Optional(CONF_NIGHT_END, default="07:00:00"): selector.TimeSelector(),
         vol.Optional(CONF_NIGHT_WEEKEND, default=True): selector.BooleanSelector(),
         vol.Optional(CONF_FEED_IN_PRICE): _SENSOR,
-        vol.Optional(CONF_FEED_IN_FIXED): _number(maximum=1),
-        vol.Optional(CONF_FEED_IN_COST): _number(maximum=1),
+        vol.Optional(CONF_FEED_IN_FIXED): _number(),
+        vol.Optional(CONF_FEED_IN_COST): _number(),
         vol.Optional(CONF_NET_METERING_UNTIL): selector.DateSelector(),
     }),
     "grid": (True, {
         vol.Optional(CONF_GRID_POWER): _POWER,
+        vol.Optional(CONF_GRID_EXPORT_POWER): _POWER,
         vol.Optional(CONF_SOLAR_POWER): _POWER,
     }),
     "costs": (True, {
         vol.Optional(CONF_STANDBY_POWER): _number("W", 1, 1000),
-        vol.Optional(CONF_WEAR_COST): _number(maximum=1),
+        vol.Optional(CONF_WEAR_COST): _number(),
         vol.Optional(CONF_BATTERY_COST): _number(step=1),
         vol.Optional(CONF_INSTALL_DATE): selector.DateSelector(),
     }),

@@ -27,4 +27,7 @@ jobs:
         with:
           python-version: "3.13"
       - run: pip install -r requirements_test.txt
+      - run: ruff check .
       - run: pytest -q
+      # The card has no build step, so at least make sure it parses.
+      - run: node --check custom_components/battery_roi/frontend/battery-roi-card.js

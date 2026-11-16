@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -11,7 +11,6 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfEnergy, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
@@ -19,25 +18,36 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from . import BatteryRoiHub
+from . import BatteryRoiConfigEntry, BatteryRoiHub
 from .const import CONF_BATTERY_COST, DOMAIN, VERSION
 
 
+# Entities only read the hub's memory, so updates never need to wait for each other.
+PARALLEL_UPDATES = 0
+
+
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    hass: HomeAssistant, entry: BatteryRoiConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    hub: BatteryRoiHub = entry.runtime_data
+    hub = entry.runtime_data
     currency = hass.config.currency
 
-    def money(key: str, name: str, value, attrs=None, state_class=SensorStateClass.TOTAL):
+    def money(key: str, value, attrs=None, last_reset=None):
         return RoiSensor(
-            hub, entry, key, name, value, attrs,
-            unit=currency, device_class=SensorDeviceClass.MONETARY, state_class=state_class,
+            hub, entry, key, value, attrs,
+            unit=currency, device_class=SensorDeviceClass.MONETARY, state_class=SensorStateClass.TOTAL,
+            last_reset=last_reset,
         )
 
+    def reset_at() -> datetime | None:
+        # Only Reset starts a new cycle. A backfill that changes the totals is
+        # booked as a plain change, so it is never counted twice.
+        at = hub.acc.totals.reset_at
+        return None if at is None else datetime.fromisoformat(at)
+
     entities = [
-        RoiSensor(
-            hub, entry, "rate", "Rate",
+        RateSensor(
+            hub, entry, "rate",
             lambda: _round(hub.acc.rate(), 4),
             # The card compares this with its own version to spot a stale browser copy.
             lambda: {**hub.live, "version": VERSION},
@@ -45,34 +55,38 @@ async def async_setup_entry(
             precision=2,
         ),
         money(
-            "profit_total", "Profit total",
+            "profit_total",
             lambda: _round(hub.acc.totals.profit),
             lambda: {"tracking_since": hub.acc.totals.since},
+            reset_at,
         ),
         money(
-            "profit_today", "Profit today",
+            "profit_today",
             lambda: _round(hub.acc.totals.today),
             lambda: {"last_period": _round(hub.acc.totals.yesterday)},
+            # Without it, statistics book the midnight drop to 0 as a loss.
+            lambda: _start_of(hub.acc.totals.day),
         ),
         money(
-            "profit_this_month", "Profit this month",
+            "profit_this_month",
             lambda: _round(hub.acc.totals.month),
             lambda: {"last_period": _round(hub.acc.totals.last_month)},
+            lambda: _start_of(hub.acc.totals.month_key and f"{hub.acc.totals.month_key}-01"),
         ),
         RoiSensor(
-            hub, entry, "energy_charged", "Energy charged",
+            hub, entry, "energy_charged",
             lambda: _round(hub.acc.totals.energy_in, 3), None,
             unit=UnitOfEnergy.KILO_WATT_HOUR, device_class=SensorDeviceClass.ENERGY,
-            state_class=SensorStateClass.TOTAL_INCREASING,
+            state_class=SensorStateClass.TOTAL, last_reset=reset_at,
         ),
         RoiSensor(
-            hub, entry, "energy_discharged", "Energy discharged",
+            hub, entry, "energy_discharged",
             lambda: _round(hub.acc.totals.energy_out, 3), None,
             unit=UnitOfEnergy.KILO_WATT_HOUR, device_class=SensorDeviceClass.ENERGY,
-            state_class=SensorStateClass.TOTAL_INCREASING,
+            state_class=SensorStateClass.TOTAL, last_reset=reset_at,
         ),
         RoiSensor(
-            hub, entry, "efficiency", "Efficiency",
+            hub, entry, "efficiency",
             lambda: _round(hub.acc.efficiency(), 1), None,
             unit=PERCENTAGE, state_class=SensorStateClass.MEASUREMENT, icon="mdi:battery-sync",
         ),
@@ -81,7 +95,7 @@ async def async_setup_entry(
         cost = hub.config[CONF_BATTERY_COST]
         entities.append(
             RoiSensor(
-                hub, entry, "payback", "Payback",
+                hub, entry, "payback",
                 lambda: _round(hub.acc.payback_years(cost, dt_util.now()), 1),
                 lambda: {
                     "battery_cost": cost,
@@ -100,6 +114,11 @@ def _paid_back_on(years: float | None) -> str | None:
     return (dt_util.now() + timedelta(days=years * 365.25)).date().isoformat()
 
 
+def _start_of(day: str | None) -> datetime | None:
+    """Local midnight at the start of an ISO date."""
+    return None if day is None else dt_util.start_of_local_day(date.fromisoformat(day))
+
+
 def _round(value: float | None, digits: int = 2) -> float | None:
     return None if value is None else round(value, digits)
 
@@ -111,9 +130,8 @@ class RoiSensor(SensorEntity):
     def __init__(
         self,
         hub: BatteryRoiHub,
-        entry: ConfigEntry,
+        entry: BatteryRoiConfigEntry,
         key: str,
-        name: str,
         value: Callable[[], Any],
         attrs: Callable[[], dict] | None,
         *,
@@ -122,11 +140,15 @@ class RoiSensor(SensorEntity):
         state_class: SensorStateClass | None = None,
         icon: str | None = None,
         precision: int | None = None,
+        last_reset: Callable[[], datetime | None] | None = None,
     ) -> None:
         self._hub = hub
         self._value = value
         self._attrs = attrs
-        self._attr_name = name
+        self._last_reset = last_reset
+        self._attr_translation_key = key
+        # English ids in every language, so dashboards and the card's defaults keep working.
+        self.entity_id = f"sensor.{DOMAIN}_{key}"
         self._attr_unique_id = f"{entry.entry_id}_{key}"
         self._attr_native_unit_of_measurement = unit
         self._attr_device_class = device_class
@@ -150,5 +172,14 @@ class RoiSensor(SensorEntity):
         return self._value()
 
     @property
+    def last_reset(self) -> datetime | None:
+        return self._last_reset() if self._last_reset else None
+
+    @property
     def extra_state_attributes(self) -> dict | None:
         return self._attrs() if self._attrs else None
+
+
+class RateSensor(RoiSensor):
+    # Live readings for the card; recording them would add a row per update.
+    _unrecorded_attributes = frozenset({"price", "feed_in_price", "grid_kw", "solar_kw", "soc", "version"})

@@ -43,7 +43,7 @@
               "net_metering_until": "Net metering until"
             },
             "data_description": {
-              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically. Leave empty if you have a fixed tariff.",
+              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… Per kWh in your currency or its subunit (ct, öre, p) and per MWh are converted automatically. Leave empty if you have a fixed tariff.",
               "price_surcharge": "Only for raw market prices (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh. Leave empty for all-in prices such as Tibber.",
               "vat": "Only for raw market prices: applied to price + extra cost. 21 in the Netherlands. Leave empty for all-in prices.",
               "price_fixed": "All-in price per kWh. On a single-rate contract, enter your price here and leave off-peak empty; then also fill in a feed-in price and grid power, because without them the card can only show charging losses. Also used when the price sensor is unavailable.",
@@ -61,10 +61,12 @@
             "name": "Grid and solar (recommended)",
             "data": {
               "grid_power": "Grid power",
+              "grid_export_power": "Grid export power",
               "solar_power": "Solar production"
             },
             "data_description": {
               "grid_power": "Your smart meter or energy monitor (DSMR, HomeWizard P1, Shelly EM, Tibber Pulse…): positive when importing, negative when exporting. With a feed-in price this tells whether the battery avoided buying or selling.",
+              "grid_export_power": "Only if your meter has a separate sensor for exported power (DSMR power production). Then pick the import sensor above as grid power; both are positive and Battery ROI subtracts them.",
               "solar_power": "Optional, shown on the card."
             }
           },
@@ -138,7 +140,7 @@
               "net_metering_until": "Net metering until"
             },
             "data_description": {
-              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically. Leave empty if you have a fixed tariff.",
+              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… Per kWh in your currency or its subunit (ct, öre, p) and per MWh are converted automatically. Leave empty if you have a fixed tariff.",
               "price_surcharge": "Only for raw market prices (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh. Leave empty for all-in prices such as Tibber.",
               "vat": "Only for raw market prices: applied to price + extra cost. 21 in the Netherlands. Leave empty for all-in prices.",
               "price_fixed": "All-in price per kWh. On a single-rate contract, enter your price here and leave off-peak empty; then also fill in a feed-in price and grid power, because without them the card can only show charging losses. Also used when the price sensor is unavailable.",
@@ -156,10 +158,12 @@
             "name": "Grid and solar (recommended)",
             "data": {
               "grid_power": "Grid power",
+              "grid_export_power": "Grid export power",
               "solar_power": "Solar production"
             },
             "data_description": {
               "grid_power": "Your smart meter or energy monitor (DSMR, HomeWizard P1, Shelly EM, Tibber Pulse…): positive when importing, negative when exporting. With a feed-in price this tells whether the battery avoided buying or selling.",
+              "grid_export_power": "Only if your meter has a separate sensor for exported power (DSMR power production). Then pick the import sensor above as grid power; both are positive and Battery ROI subtracts them.",
               "solar_power": "Optional, shown on the card."
             }
           },
@@ -198,6 +202,35 @@
     "button": {
       "reset_totals": {
         "name": "Reset totals"
+      },
+      "undo_reset": {
+        "name": "Undo reset"
+      }
+    },
+    "sensor": {
+      "rate": {
+        "name": "Rate"
+      },
+      "profit_total": {
+        "name": "Profit total"
+      },
+      "profit_today": {
+        "name": "Profit today"
+      },
+      "profit_this_month": {
+        "name": "Profit this month"
+      },
+      "energy_charged": {
+        "name": "Energy charged"
+      },
+      "energy_discharged": {
+        "name": "Energy discharged"
+      },
+      "efficiency": {
+        "name": "Efficiency"
+      },
+      "payback": {
+        "name": "Payback"
       }
     }
   }

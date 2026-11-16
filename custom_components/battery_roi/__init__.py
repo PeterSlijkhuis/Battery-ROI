@@ -31,6 +31,7 @@ from .const import (
     CONF_FEED_IN_COST,
     CONF_FEED_IN_FIXED,
     CONF_FEED_IN_PRICE,
+    CONF_GRID_EXPORT_POWER,
     CONF_GRID_POWER,
     CONF_INSTALL_DATE,
     CONF_NET_METERING_UNTIL,
@@ -56,6 +57,13 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [Platform.BUTTON, Platform.SENSOR]
 TICK = timedelta(seconds=30)
+
+type BatteryRoiConfigEntry = ConfigEntry[BatteryRoiHub]
+# Charge power first: backfill reads from its statistics when Home Assistant ran.
+_PROFIT_KEYS = (
+    CONF_CHARGE_POWER, CONF_DISCHARGE_POWER, CONF_PRICE, CONF_FEED_IN_PRICE,
+    CONF_GRID_POWER, CONF_GRID_EXPORT_POWER,
+)
 # Samples keep postponing a delayed save, so also save on a fixed beat
 # in case Home Assistant stops without a clean shutdown.
 SAVE_EVERY = timedelta(minutes=5)
@@ -91,7 +99,7 @@ async def _async_remove_local_copy(hass: HomeAssistant) -> None:
     await done.async_save({"version": VERSION})
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup_entry(hass: HomeAssistant, entry: BatteryRoiConfigEntry) -> bool:
     hub = BatteryRoiHub(hass, entry)
     await hub.async_start()
     entry.runtime_data = hub
@@ -100,14 +108,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: BatteryRoiConfigEntry) -> bool:
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unloaded:
         await entry.runtime_data.async_stop()
     return unloaded
 
 
-async def _async_reload(hass: HomeAssistant, entry: ConfigEntry) -> None:
+async def _async_reload(hass: HomeAssistant, entry: BatteryRoiConfigEntry) -> None:
     await hass.config_entries.async_reload(entry.entry_id)
 
 
@@ -121,16 +129,20 @@ def _kw(state: State | None) -> float | None:
 
 
 def _per_kwh(state: State | None) -> float | None:
-    """Price per kWh in main currency units (handles ct/kWh and per MWh)."""
+    """Price per kWh in main currency units (handles subunits like ct, öre, p and per MWh)."""
     value = _float(state)
     if value is None:
         return None
-    unit = (state.attributes.get("unit_of_measurement") or "").lower()
+    unit = (state.attributes.get("unit_of_measurement") or "").lower().replace(" ", "")
     if "mwh" in unit:
         value /= 1000
-    if "ct" in unit or "cent" in unit:
+    if unit.split("/")[0] in _SUBUNITS:
         value /= 100
     return value
+
+
+# Hundredths of a currency: cents, Scandinavian öre/øre, British pence.
+_SUBUNITS = {"ct", "c", "cent", "cents", "€ct", "c€", "öre", "øre", "ore", "p", "pence"}
 
 
 def _float(state: State | None) -> float | None:
@@ -145,6 +157,7 @@ class BatteryRoiHub:
 
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         self.hass = hass
+        self.entry = entry
         # Options replace the original answers wholesale, so cleared fields stay cleared.
         self.config = dict(entry.options or entry.data)
         self.signal = f"{DOMAIN}_{entry.entry_id}"
@@ -163,27 +176,32 @@ class BatteryRoiHub:
         self._sample()
         install = self.config.get(CONF_INSTALL_DATE)
         if install and self.acc.totals.backfilled_from != install and "recorder" in self.hass.config.components:
-            self.hass.async_create_background_task(self._async_backfill(install), f"{DOMAIN} backfill")
+            # Tied to the entry so an unload (options change) cancels it.
+            self.entry.async_create_background_task(self.hass, self._async_backfill(install), f"{DOMAIN} backfill")
+
+    def _entities(self, *keys: str) -> list[str]:
+        return [self.config[k] for k in keys if self.config.get(k)]
 
     @property
     def _watched(self) -> list[str]:
-        keys = (
-            CONF_CHARGE_POWER, CONF_DISCHARGE_POWER, CONF_PRICE, CONF_FEED_IN_PRICE,
-            CONF_GRID_POWER, CONF_SOLAR_POWER, CONF_SOC,
-        )
-        return [self.config[k] for k in keys if self.config.get(k)]
+        return self._entities(*_PROFIT_KEYS, CONF_SOLAR_POWER, CONF_SOC)
 
     async def _async_backfill(self, install: str) -> None:
         """Replace the totals with a replay of the recorded history since the install date."""
         start = dt_util.as_utc(datetime.combine(datetime.fromisoformat(install).date(), time(), dt_util.get_default_time_zone()))
         end = dt_util.utcnow()
+        before = self.acc
         try:
-            points, running = await backfill.async_load(self.hass, self._watched, start, end)
+            # Only what the profit depends on; solar and SoC are for the card.
+            points, running = await backfill.async_load(self.hass, self._entities(*_PROFIT_KEYS), start, end)
             acc, first = await self.hass.async_add_executor_job(
                 backfill.replay, points, start, end, lambda get, at: self._build(get, at)[0], running
             )
         except Exception:  # noqa: BLE001 - history is a bonus; live tracking must keep running
             _LOGGER.exception("Could not read history for Battery ROI")
+            return
+        if self.acc is not before:
+            # Reset while the history was read: the user wants to start from now.
             return
         acc.totals.since = start.isoformat()
         acc.totals.backfilled_from = install
@@ -204,7 +222,9 @@ class BatteryRoiHub:
 
     @callback
     def _on_change(self, event: Event) -> None:
-        self._sample()
+        # Book every change, but only refresh the entities on the tick: a grid
+        # meter updating every second would otherwise fill the recorder.
+        self._sample(notify=False)
 
     @callback
     def _on_tick(self, now) -> None:
@@ -212,7 +232,22 @@ class BatteryRoiHub:
 
     async def async_reset(self) -> None:
         """Forget all totals; tracking starts again now."""
-        self.acc = Accumulator()
+        # Mark the install date as handled, or the next restart would replay the history again.
+        previous = {**self.acc.as_dict(), "previous": None}
+        self.acc = Accumulator({
+            "backfilled_from": self.config.get(CONF_INSTALL_DATE),
+            "reset_at": dt_util.now().isoformat(),
+            "previous": previous,
+        })
+        self._sample()
+        await self.store.async_save(self.acc.as_dict())
+
+    async def async_undo_reset(self) -> None:
+        """Bring back the totals from before the last reset. What was booked since then is dropped."""
+        previous = self.acc.totals.previous
+        if previous is None:
+            return
+        self.acc = Accumulator({**previous, "reset_at": dt_util.now().isoformat()})
         self._sample()
         await self.store.async_save(self.acc.as_dict())
 
@@ -220,11 +255,12 @@ class BatteryRoiHub:
         await self.store.async_save(self.acc.as_dict())
 
     @callback
-    def _sample(self) -> None:
+    def _sample(self, notify: bool = True) -> None:
         sample, self.live = self._build(self.hass.states.get, dt_util.now())
         self.acc.update(dt_util.now(), sample)
         self.store.async_delay_save(self.acc.as_dict, 60)
-        async_dispatcher_send(self.hass, self.signal)
+        if notify:
+            async_dispatcher_send(self.hass, self.signal)
 
     def _build(self, get, at: datetime) -> tuple[Sample | None, dict[str, float | None]]:
         """Turn the chosen sensors' states (live or from history) into a sample."""
@@ -252,6 +288,10 @@ class BatteryRoiHub:
         if cost and price is not None:
             feed_in = (price if feed_in is None else feed_in) - cost
         grid = read(CONF_GRID_POWER, _kw)
+        if self.config.get(CONF_GRID_EXPORT_POWER):
+            # Separate import and export sensors, both positive.
+            export = read(CONF_GRID_EXPORT_POWER, _kw)
+            grid = None if grid is None or export is None else grid - export
 
         charge = read(CONF_CHARGE_POWER, _kw)
         if self.config.get(CONF_DISCHARGE_POWER):

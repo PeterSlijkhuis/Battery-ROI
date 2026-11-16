@@ -33,6 +33,8 @@ class Totals:
     month_key: str | None = None
     since: str | None = None
     backfilled_from: str | None = None  # install date the history was replayed from
+    reset_at: str | None = None  # last press of Reset totals, for the sensors' last_reset
+    previous: dict | None = None  # the totals before the last reset, for Undo reset
 
 
 @dataclass(frozen=True)

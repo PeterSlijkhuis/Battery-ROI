@@ -1,0 +1,3 @@
+# Real bugs only (syntax errors, undefined or unused names); no style rules.
+[lint]
+select = ["E9", "F"]

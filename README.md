@@ -13,6 +13,7 @@ A Home Assistant integration that multiplies every kWh your battery charges and 
 [![CI](https://github.com/PeterSlijkhuis/Battery-ROI/actions/workflows/ci.yml/badge.svg)](https://github.com/PeterSlijkhuis/Battery-ROI/actions/workflows/ci.yml)
 ![Version](https://img.shields.io/github/v/release/PeterSlijkhuis/Battery-ROI)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=kofi&logoColor=white)](https://ko-fi.com/peterslijkhuis)
 
 [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=PeterSlijkhuis&repository=Battery-ROI&category=integration)
 [![Open your Home Assistant instance and start setting up Battery ROI.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=battery_roi)
@@ -36,7 +37,7 @@ Standard energy dashboards show kWh. With dynamic prices (EPEX, Nordpool, Tibber
 
 - 🧮 **Real profit, not an estimate**: every 30 seconds, energy × the price that applied at that moment
 - 🖱️ **No YAML**: pick your own sensors in a setup screen, change them later without losing your totals
-- 🔌 **Works with any battery that has a power sensor in Home Assistant** (EcoFlow, Zendure, Marstek, Anker SOLIX, Victron, Huawei, SolarEdge, Sessy, Tesla Powerwall and so on), any grid meter, any dynamic price sensor, W/kW and EUR/kWh, ct/kWh or EUR/MWh
+- 🔌 **Works with any battery that has a power sensor in Home Assistant** (EcoFlow, Zendure, Marstek, Anker SOLIX, Victron, Huawei, SolarEdge, Sessy, Tesla Powerwall and so on), any grid meter, any dynamic price sensor, W/kW, and prices per kWh or MWh in any currency or its subunit (ct, öre, p)
 - ☀️ **Solar aware**: with a feed-in price and a grid meter, it knows whether a kWh replaced buying or selling
 - 📈 **Dashboard card included**: today, this month, yesterday, last month, live €/h, monthly pace, payback and efficiency
 - 🎨 **Matches your theme**: the card uses only Home Assistant theme variables, light and dark
@@ -75,6 +76,7 @@ Write down the names of the sensors you'll pick in step 4.
 | Battery discharge power | `battery` + `power`, or your battery brand | Watts that come **out of** the battery. Skip if the sensor above is signed |
 | Electricity price *(required, or a peak price)* | `price`, `tibber`, `nordpool`, `epex` | Your current price per kWh |
 | Grid power *(recommended)* | `grid`, `p1`, `net`, `power_consumption` | Your smart meter or energy monitor: watts from (+) or to (−) the grid |
+| Grid export power | `power_production`, `export` | Only if your meter has a separate sensor for exported watts; then pick the import sensor as grid power |
 | Feed-in price *(recommended)* | `price` | What you get per exported kWh. With a dynamic contract this is often the same price sensor |
 | Solar production | `solar`, `pv`, `inverter` | Watts your panels produce right now |
 | Battery level | `battery` + `level`, `soc`, `state_of_charge` | Battery % |
@@ -85,11 +87,11 @@ Write down the names of the sensors you'll pick in step 4.
 | --- | --- | --- |
 | Battery | EcoFlow, Zendure, Anker SOLIX | separate *input* / *output* power sensors → fill both charge and discharge |
 | Battery | Marstek, Victron, Huawei, SolarEdge, Sessy, Tesla Powerwall | one *battery power* sensor, positive one way and negative the other → fill charge only and set *Positive power means* |
-| Grid | DSMR / Slimme meter, HomeWizard P1, P1 Monitor, Shelly EM, Tibber Pulse | *power consumption* minus *power production*, or one signed *active power* sensor |
+| Grid | DSMR / Slimme meter, HomeWizard P1, P1 Monitor, Shelly EM, Tibber Pulse | *power consumption* as grid power plus *power production* as grid export power, or one signed *active power* sensor |
 | Solar | Enphase, SolarEdge, SMA, Growatt, Fronius, APsystems | *current power* or *AC power* of the inverter |
 | Price | Nordpool, ENTSO-e, EnergyZero, Tibber, Frank Energie, Zonneplan, Octopus | *current price* |
 
-Your grid meter (or battery) only has two separate sensors, one per direction, and you want one signed sensor? Make one with a [template helper](https://my.home-assistant.io/redirect/helpers/) (**Settings → Devices & services → Helpers → Create helper → Template → Template sensor**, state `{{ states('sensor.power_consumption')|float(0) - states('sensor.power_production')|float(0) }}`, unit W, device class Power).
+Your grid meter has two separate sensors, one per direction? Pick the import one as *Grid power* and the export one as *Grid export power*. A battery with two sensors goes in *charge* and *discharge*. Prefer one signed sensor anyway? Make one with a [template helper](https://my.home-assistant.io/redirect/helpers/) (**Settings → Devices & services → Helpers → Create helper → Template → Template sensor**, state `{{ states('sensor.power_consumption')|float(0) - states('sensor.power_production')|float(0) }}`, unit W, device class Power).
 
 > **Not sure which way a signed sensor goes?** Open it (click the name) while the battery is charging. Positive number = "positive means charging".
 
@@ -161,6 +163,7 @@ All fields explained:
 | | Feed-in costs per kWh | | What your supplier charges per exported kWh (*terugleverkosten*), all-in. Counts under net metering too. Needs grid power |
 | | Net metering until | | The day net metering ends for you. Before it the feed-in price is ignored, after it it counts. Optional; leave empty if you have no net metering |
 | Grid and solar | Grid power | | Smart meter or energy monitor, + import / − export |
+| | Grid export power | | Only for meters with a separate export sensor; grid power is then the import sensor |
 | | Solar production | | Shown on the card |
 | Battery costs | Standby power | | Watts the battery uses itself that its power sensors miss |
 | | Wear cost per kWh discharged | | Purchase price ÷ (capacity in kWh × rated cycles) |
@@ -242,6 +245,7 @@ Tap a tile or the ticker to see its history graph.
 | Change which sensors are used | **Settings → Devices & services → Battery ROI → Configure** (your totals are kept) |
 | Fill in history from the day you got the battery | **Configure** → *Battery costs* → **Battery installed on**, see below |
 | Start the totals from zero | **Settings → Devices & services → Battery ROI → device → Reset totals → Press** |
+| Pressed Reset by mistake | Same place → **Undo reset → Press** |
 | See all Battery ROI numbers | **Settings → Devices & services → Battery ROI → device** |
 | See a number's history | Tap it on the card |
 | Change what the card shows | Edit the dashboard → click the card → **Edit** |
@@ -261,13 +265,14 @@ How far back it can go depends on what Home Assistant kept:
 
 - Long-term statistics only exist for sensors with a *state class*. Most battery power sensors have one; some price sensors don't, and hours without a price are skipped.
 - Hours when Home Assistant was off are skipped rather than guessed.
+- With one signed battery power sensor, charging and discharging inside the same hour cancel out in the hourly average. On quarter-hour prices that makes the older part of the replay a little low.
 - The replay **replaces** the current totals. It runs once per date; change the date to run it again.
 
 **Numbers look wrong?**
 
 - *Profit is negative on day one* → normal while the battery is charging, see [Your first day](#your-first-day-why-the-numbers-look-odd).
 - *Profit goes down while the battery is **discharging*** → the sign is flipped. Change **Positive power means** (step 4 via Configure), or check your grid power sensor, then **Reset totals**.
-- *Profit is far too small or large* → check the price sensor's unit (EUR/kWh, ct/kWh and EUR/MWh are handled) and that *Extra cost* is only filled in for raw market prices.
+- *Profit is far too small or large* → check the price sensor's unit (per kWh, per MWh and subunits like ct, öre and p are handled) and that *Extra cost* is only filled in for raw market prices.
 - *Card says Battery ROI isn't set up* → finish step 4, then refresh the browser.
 - *Card doesn't appear in the card list, or "Custom element doesn't exist: battery-roi-card"* → the page was loaded before Battery ROI was installed, and Home Assistant never adds a new card to a page that is already open. In a browser press Ctrl+F5. In the phone app close the app completely (swipe it away) and open it again. Still missing? **Settings → Companion app → Troubleshooting → Reset frontend cache**, then close and reopen the app once more.
 
@@ -307,6 +312,7 @@ The **pace** line projects this month's profit to a full month, using the exact 
 | `sensor.battery_roi_efficiency` | Discharged ÷ charged, shown after 1 kWh |
 | `sensor.battery_roi_payback` | Years until the battery has paid for itself at the average rate so far. Attribute `paid_back_on` holds the expected date. Only exists if you entered a purchase cost; shown after 7 days with positive profit |
 | `button.battery_roi_reset_totals` | Start all totals from zero |
+| `button.battery_roi_undo_reset` | Bring back the totals from before the last reset. Only available right after a reset; what was booked since then is dropped |
 
 Totals survive restarts. Gaps longer than 15 minutes (Home Assistant down, sensor offline) are skipped rather than guessed.
 
@@ -345,7 +351,7 @@ flowchart LR
 
 Included: round-trip losses, because you charge more kWh than you get back. Optional: the battery's own standby draw, and wear per kWh discharged (counted once, not on both charge and discharge).
 
-> **Tip for the Netherlands:** net metering ends on 1 January 2027. From then on a stored solar kWh is worth the feed-in price, not the import price, Enter your feed-in price, grid meter and *Net metering until* = 1 January 2027 once, and the numbers switch over on their own.
+> **Tip for the Netherlands:** net metering ends on 1 January 2027. From then on a stored solar kWh is worth the feed-in price, not the import price. Enter your feed-in price, grid meter and *Net metering until* = 1 January 2027 once, and the numbers switch over on their own.
 
 > **Tip for raw EPEX prices:** they exclude energy tax, supplier fee and VAT. Fill in *Extra cost per kWh* and *VAT*: the import price becomes (market price + extra cost) × (1 + VAT).
 
@@ -380,10 +386,11 @@ Yes. All numbers are ordinary sensors, so Mushroom, Tile or any other card works
 
 ```bash
 pip install -r requirements_test.txt
+ruff check .
 pytest
 ```
 
-CI runs Home Assistant's `hassfest` validation and the test suite on every pull request. The screenshots above come from a real Home Assistant 2026.2 with demo sensors.
+CI runs Home Assistant's `hassfest` validation, `ruff check` and the test suite on every pull request. The test requirements are pinned; bump `pytest-homeassistant-custom-component` on purpose when you want a newer Home Assistant to test against. The screenshots above come from a real Home Assistant 2026.2 with demo sensors.
 
 ## License
 
@@ -392,3 +399,9 @@ CI runs Home Assistant's `hassfest` validation and the test suite on every pull 
 ## Contributing
 
 Issues and pull requests are welcome at [github.com/PeterSlijkhuis/Battery-ROI](https://github.com/PeterSlijkhuis/Battery-ROI/issues).
+
+## Support
+
+Battery ROI is free. If it helps you, you can buy me a coffee:
+
+[![Buy me a coffee on Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=kofi&logoColor=white)](https://ko-fi.com/peterslijkhuis)

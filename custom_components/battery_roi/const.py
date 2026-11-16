@@ -1,7 +1,7 @@
 """Constants for Battery ROI."""
 
 DOMAIN = "battery_roi"
-VERSION = "0.6.1"
+VERSION = "1.0.0"
 
 CONF_CHARGE_POWER = "charge_power"
 CONF_DISCHARGE_POWER = "discharge_power"
@@ -19,6 +19,7 @@ CONF_FEED_IN_FIXED = "feed_in_fixed"
 CONF_FEED_IN_COST = "feed_in_cost"
 CONF_NET_METERING_UNTIL = "net_metering_until"
 CONF_GRID_POWER = "grid_power"
+CONF_GRID_EXPORT_POWER = "grid_export_power"
 CONF_SOLAR_POWER = "solar_power"
 CONF_SOC = "soc"
 CONF_BATTERY_COST = "battery_cost"

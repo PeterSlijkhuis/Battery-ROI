@@ -43,7 +43,7 @@
               "net_metering_until": "Salderen tot"
             },
             "data_description": {
-              "price": "Je dynamische tariefsensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh en EUR/MWh worden automatisch omgerekend. Leeg laten als je een vast tarief hebt.",
+              "price": "Je dynamische tariefsensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… Per kWh in je valuta of in centen (ct, öre, p) en per MWh worden automatisch omgerekend. Leeg laten als je een vast tarief hebt.",
               "price_surcharge": "Alleen voor kale marktprijzen (EPEX, Nordpool): energiebelasting + inkoopvergoeding in EUR/kWh. Leeg laten bij all-in prijzen zoals Tibber.",
               "vat": "Alleen voor kale marktprijzen: over prijs + extra kosten. In Nederland 21. Leeg laten bij all-in prijzen.",
               "price_fixed": "All-in prijs per kWh. Bij een enkel tarief vul je hier je prijs in en laat je de dalprijs leeg; vul dan ook een terugleverprijs en netvermogen in, want zonder die twee kan de kaart alleen laadverliezen tonen. Wordt ook gebruikt als de prijssensor niet beschikbaar is.",
@@ -61,10 +61,12 @@
             "name": "Net en zonnepanelen (aanbevolen)",
             "data": {
               "grid_power": "Netvermogen",
+              "grid_export_power": "Netvermogen teruglevering",
               "solar_power": "Zonne-opwek"
             },
             "data_description": {
               "grid_power": "Je slimme meter of energiemonitor (DSMR, HomeWizard P1, Shelly EM, Tibber Pulse…): positief bij afname, negatief bij teruglevering. Met een terugleverprijs weet de integratie of de batterij inkoop of verkoop verving.",
+              "grid_export_power": "Alleen als je meter een aparte sensor voor teruglevering heeft (DSMR vermogen teruglevering). Kies dan hierboven de afnamesensor als netvermogen; beide zijn positief en Battery ROI trekt ze van elkaar af.",
               "solar_power": "Optioneel, wordt op de kaart getoond."
             }
           },
@@ -138,7 +140,7 @@
               "net_metering_until": "Salderen tot"
             },
             "data_description": {
-              "price": "Je dynamische tariefsensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh en EUR/MWh worden automatisch omgerekend. Leeg laten als je een vast tarief hebt.",
+              "price": "Je dynamische tariefsensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… Per kWh in je valuta of in centen (ct, öre, p) en per MWh worden automatisch omgerekend. Leeg laten als je een vast tarief hebt.",
               "price_surcharge": "Alleen voor kale marktprijzen (EPEX, Nordpool): energiebelasting + inkoopvergoeding in EUR/kWh. Leeg laten bij all-in prijzen zoals Tibber.",
               "vat": "Alleen voor kale marktprijzen: over prijs + extra kosten. In Nederland 21. Leeg laten bij all-in prijzen.",
               "price_fixed": "All-in prijs per kWh. Bij een enkel tarief vul je hier je prijs in en laat je de dalprijs leeg; vul dan ook een terugleverprijs en netvermogen in, want zonder die twee kan de kaart alleen laadverliezen tonen. Wordt ook gebruikt als de prijssensor niet beschikbaar is.",
@@ -156,10 +158,12 @@
             "name": "Net en zonnepanelen (aanbevolen)",
             "data": {
               "grid_power": "Netvermogen",
+              "grid_export_power": "Netvermogen teruglevering",
               "solar_power": "Zonne-opwek"
             },
             "data_description": {
               "grid_power": "Je slimme meter of energiemonitor (DSMR, HomeWizard P1, Shelly EM, Tibber Pulse…): positief bij afname, negatief bij teruglevering. Met een terugleverprijs weet de integratie of de batterij inkoop of verkoop verving.",
+              "grid_export_power": "Alleen als je meter een aparte sensor voor teruglevering heeft (DSMR vermogen teruglevering). Kies dan hierboven de afnamesensor als netvermogen; beide zijn positief en Battery ROI trekt ze van elkaar af.",
               "solar_power": "Optioneel, wordt op de kaart getoond."
             }
           },
@@ -198,6 +202,35 @@
     "button": {
       "reset_totals": {
         "name": "Totalen resetten"
+      },
+      "undo_reset": {
+        "name": "Reset ongedaan maken"
+      }
+    },
+    "sensor": {
+      "rate": {
+        "name": "Opbrengst per uur"
+      },
+      "profit_total": {
+        "name": "Winst totaal"
+      },
+      "profit_today": {
+        "name": "Winst vandaag"
+      },
+      "profit_this_month": {
+        "name": "Winst deze maand"
+      },
+      "energy_charged": {
+        "name": "Energie geladen"
+      },
+      "energy_discharged": {
+        "name": "Energie ontladen"
+      },
+      "efficiency": {
+        "name": "Rendement"
+      },
+      "payback": {
+        "name": "Terugverdientijd"
       }
     }
   }
