@@ -328,3 +328,21 @@ async def test_reset_during_backfill_wins(hass: HomeAssistant, freezer) -> None:
 
     assert hub.acc is reset
     assert hub.acc.totals.backfilled_from == "2026-09-01"
+
+
+def test_price_units_in_subunits_and_per_mwh() -> None:
+    from homeassistant.core import State
+
+    from custom_components.battery_roi import _per_kwh
+
+    def price(value, unit):
+        return _per_kwh(State("sensor.p", value, {"unit_of_measurement": unit}))
+
+    assert price("25", "ct/kWh") == pytest.approx(0.25)
+    assert price("25", "Cent/kWh") == pytest.approx(0.25)
+    assert price("150", "öre/kWh") == pytest.approx(1.5)
+    assert price("150", "øre/kWh") == pytest.approx(1.5)
+    assert price("24.5", "p/kWh") == pytest.approx(0.245)
+    assert price("120", "EUR/MWh") == pytest.approx(0.12)
+    assert price("2.1", "SEK/kWh") == pytest.approx(2.1)
+    assert price("0.3", "GBP/kWh") == pytest.approx(0.3)

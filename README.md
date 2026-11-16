@@ -36,7 +36,7 @@ Standard energy dashboards show kWh. With dynamic prices (EPEX, Nordpool, Tibber
 
 - 🧮 **Real profit, not an estimate**: every 30 seconds, energy × the price that applied at that moment
 - 🖱️ **No YAML**: pick your own sensors in a setup screen, change them later without losing your totals
-- 🔌 **Works with any battery that has a power sensor in Home Assistant** (EcoFlow, Zendure, Marstek, Anker SOLIX, Victron, Huawei, SolarEdge, Sessy, Tesla Powerwall and so on), any grid meter, any dynamic price sensor, W/kW and EUR/kWh, ct/kWh or EUR/MWh
+- 🔌 **Works with any battery that has a power sensor in Home Assistant** (EcoFlow, Zendure, Marstek, Anker SOLIX, Victron, Huawei, SolarEdge, Sessy, Tesla Powerwall and so on), any grid meter, any dynamic price sensor, W/kW, and prices per kWh or MWh in any currency or its subunit (ct, öre, p)
 - ☀️ **Solar aware**: with a feed-in price and a grid meter, it knows whether a kWh replaced buying or selling
 - 📈 **Dashboard card included**: today, this month, yesterday, last month, live €/h, monthly pace, payback and efficiency
 - 🎨 **Matches your theme**: the card uses only Home Assistant theme variables, light and dark
@@ -267,7 +267,7 @@ How far back it can go depends on what Home Assistant kept:
 
 - *Profit is negative on day one* → normal while the battery is charging, see [Your first day](#your-first-day-why-the-numbers-look-odd).
 - *Profit goes down while the battery is **discharging*** → the sign is flipped. Change **Positive power means** (step 4 via Configure), or check your grid power sensor, then **Reset totals**.
-- *Profit is far too small or large* → check the price sensor's unit (EUR/kWh, ct/kWh and EUR/MWh are handled) and that *Extra cost* is only filled in for raw market prices.
+- *Profit is far too small or large* → check the price sensor's unit (per kWh, per MWh and subunits like ct, öre and p are handled) and that *Extra cost* is only filled in for raw market prices.
 - *Card says Battery ROI isn't set up* → finish step 4, then refresh the browser.
 - *Card doesn't appear in the card list, or "Custom element doesn't exist: battery-roi-card"* → the page was loaded before Battery ROI was installed, and Home Assistant never adds a new card to a page that is already open. In a browser press Ctrl+F5. In the phone app close the app completely (swipe it away) and open it again. Still missing? **Settings → Companion app → Troubleshooting → Reset frontend cache**, then close and reopen the app once more.
 

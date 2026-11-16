@@ -43,7 +43,7 @@
               "net_metering_until": "Net metering until"
             },
             "data_description": {
-              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically. Leave empty if you have a fixed tariff.",
+              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… Per kWh in your currency or its subunit (ct, öre, p) and per MWh are converted automatically. Leave empty if you have a fixed tariff.",
               "price_surcharge": "Only for raw market prices (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh. Leave empty for all-in prices such as Tibber.",
               "vat": "Only for raw market prices: applied to price + extra cost. 21 in the Netherlands. Leave empty for all-in prices.",
               "price_fixed": "All-in price per kWh. On a single-rate contract, enter your price here and leave off-peak empty; then also fill in a feed-in price and grid power, because without them the card can only show charging losses. Also used when the price sensor is unavailable.",
@@ -138,7 +138,7 @@
               "net_metering_until": "Net metering until"
             },
             "data_description": {
-              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… EUR/kWh, ct/kWh and EUR/MWh are converted automatically. Leave empty if you have a fixed tariff.",
+              "price": "Your dynamic tariff sensor: EPEX, Nordpool, ENTSO-e, Tibber, Frank Energie, Zonneplan… Per kWh in your currency or its subunit (ct, öre, p) and per MWh are converted automatically. Leave empty if you have a fixed tariff.",
               "price_surcharge": "Only for raw market prices (EPEX, Nordpool): energy tax + supplier fee in EUR/kWh. Leave empty for all-in prices such as Tibber.",
               "vat": "Only for raw market prices: applied to price + extra cost. 21 in the Netherlands. Leave empty for all-in prices.",
               "price_fixed": "All-in price per kWh. On a single-rate contract, enter your price here and leave off-peak empty; then also fill in a feed-in price and grid power, because without them the card can only show charging losses. Also used when the price sensor is unavailable.",

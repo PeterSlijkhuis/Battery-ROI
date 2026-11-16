@@ -121,16 +121,20 @@ def _kw(state: State | None) -> float | None:
 
 
 def _per_kwh(state: State | None) -> float | None:
-    """Price per kWh in main currency units (handles ct/kWh and per MWh)."""
+    """Price per kWh in main currency units (handles subunits like ct, öre, p and per MWh)."""
     value = _float(state)
     if value is None:
         return None
-    unit = (state.attributes.get("unit_of_measurement") or "").lower()
+    unit = (state.attributes.get("unit_of_measurement") or "").lower().replace(" ", "")
     if "mwh" in unit:
         value /= 1000
-    if "ct" in unit or "cent" in unit:
+    if unit.split("/")[0] in _SUBUNITS:
         value /= 100
     return value
+
+
+# Hundredths of a currency: cents, Scandinavian öre/øre, British pence.
+_SUBUNITS = {"ct", "c", "cent", "cents", "€ct", "c€", "öre", "øre", "ore", "p", "pence"}
 
 
 def _float(state: State | None) -> float | None:
