@@ -259,3 +259,18 @@ def test_paid_back_on_is_a_date(freezer) -> None:
     freezer.move_to("2026-09-26 12:00:00+02:00")
     assert _paid_back_on(None) is None
     assert _paid_back_on(2.0)[:7] == "2028-09"
+
+
+async def test_reset_survives_a_restart_with_an_install_date(hass: HomeAssistant, freezer) -> None:
+    """A reset must not be undone by replaying the history again on the next start."""
+    freezer.move_to("2026-09-26 10:00:00+02:00")
+    await _setup(hass, freezer)
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    hub = entry.runtime_data
+    hub.acc.totals.backfilled_from = "2026-09-01"
+    hub.config["install_date"] = "2026-09-01"
+
+    await hass.services.async_call(
+        "button", "press", {"entity_id": "button.battery_roi_reset_totals"}, blocking=True
+    )
+    assert hub.acc.totals.backfilled_from == "2026-09-01"

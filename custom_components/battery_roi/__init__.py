@@ -212,7 +212,8 @@ class BatteryRoiHub:
 
     async def async_reset(self) -> None:
         """Forget all totals; tracking starts again now."""
-        self.acc = Accumulator()
+        # Keep the backfill marker, or the next restart would replay the history again.
+        self.acc = Accumulator({"backfilled_from": self.acc.totals.backfilled_from})
         self._sample()
         await self.store.async_save(self.acc.as_dict())
 
