@@ -13,6 +13,7 @@ A Home Assistant integration that multiplies every kWh your battery charges and 
 [![CI](https://github.com/PeterSlijkhuis/Battery-ROI/actions/workflows/ci.yml/badge.svg)](https://github.com/PeterSlijkhuis/Battery-ROI/actions/workflows/ci.yml)
 ![Version](https://img.shields.io/github/v/release/PeterSlijkhuis/Battery-ROI)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=kofi&logoColor=white)](https://ko-fi.com/peterslijkhuis)
 
 [![Open your Home Assistant instance and open this repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=PeterSlijkhuis&repository=Battery-ROI&category=integration)
 [![Open your Home Assistant instance and start setting up Battery ROI.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=battery_roi)
@@ -397,3 +398,9 @@ CI runs Home Assistant's `hassfest` validation and the test suite on every pull 
 ## Contributing
 
 Issues and pull requests are welcome at [github.com/PeterSlijkhuis/Battery-ROI](https://github.com/PeterSlijkhuis/Battery-ROI/issues).
+
+## Support
+
+Battery ROI is free. If it helps you, you can buy me a coffee:
+
+[![Buy me a coffee on Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20me%20a%20coffee-FF5E5B?logo=kofi&logoColor=white)](https://ko-fi.com/peterslijkhuis)
