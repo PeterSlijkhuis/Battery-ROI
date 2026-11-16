@@ -36,6 +36,12 @@ async def async_setup_entry(
             last_reset=last_reset,
         )
 
+    def reset_at() -> datetime | None:
+        # Only Reset starts a new cycle. A backfill that changes the totals is
+        # booked as a plain change, so it is never counted twice.
+        at = hub.acc.totals.reset_at
+        return None if at is None else datetime.fromisoformat(at)
+
     entities = [
         RateSensor(
             hub, entry, "rate", "Rate",
@@ -49,6 +55,7 @@ async def async_setup_entry(
             "profit_total", "Profit total",
             lambda: _round(hub.acc.totals.profit),
             lambda: {"tracking_since": hub.acc.totals.since},
+            reset_at,
         ),
         money(
             "profit_today", "Profit today",
@@ -67,13 +74,13 @@ async def async_setup_entry(
             hub, entry, "energy_charged", "Energy charged",
             lambda: _round(hub.acc.totals.energy_in, 3), None,
             unit=UnitOfEnergy.KILO_WATT_HOUR, device_class=SensorDeviceClass.ENERGY,
-            state_class=SensorStateClass.TOTAL_INCREASING,
+            state_class=SensorStateClass.TOTAL, last_reset=reset_at,
         ),
         RoiSensor(
             hub, entry, "energy_discharged", "Energy discharged",
             lambda: _round(hub.acc.totals.energy_out, 3), None,
             unit=UnitOfEnergy.KILO_WATT_HOUR, device_class=SensorDeviceClass.ENERGY,
-            state_class=SensorStateClass.TOTAL_INCREASING,
+            state_class=SensorStateClass.TOTAL, last_reset=reset_at,
         ),
         RoiSensor(
             hub, entry, "efficiency", "Efficiency",

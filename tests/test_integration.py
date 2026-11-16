@@ -146,7 +146,11 @@ async def test_epex_surcharge_feed_in_and_p1(hass: HomeAssistant, freezer) -> No
     await hass.services.async_call(
         "button", "press", {"entity_id": "button.battery_roi_reset_totals"}, blocking=True
     )
-    assert float(hass.states.get("sensor.battery_roi_profit_total").state) == 0
+    total = hass.states.get("sensor.battery_roi_profit_total")
+    assert float(total.state) == 0
+    # A new cycle for statistics, so the drop to 0 is not booked as a loss.
+    assert total.attributes["last_reset"]
+    assert hass.states.get("sensor.battery_roi_energy_charged").attributes["last_reset"] == total.attributes["last_reset"]
 
 
 def test_card_version_matches_integration():
