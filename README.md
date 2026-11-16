@@ -261,6 +261,7 @@ How far back it can go depends on what Home Assistant kept:
 
 - Long-term statistics only exist for sensors with a *state class*. Most battery power sensors have one; some price sensors don't, and hours without a price are skipped.
 - Hours when Home Assistant was off are skipped rather than guessed.
+- With one signed battery power sensor, charging and discharging inside the same hour cancel out in the hourly average. On quarter-hour prices that makes the older part of the replay a little low.
 - The replay **replaces** the current totals. It runs once per date; change the date to run it again.
 
 **Numbers look wrong?**

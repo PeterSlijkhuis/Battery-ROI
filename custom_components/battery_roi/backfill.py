@@ -8,6 +8,9 @@ one-minute grid through the same Accumulator the live sensors use.
 A sensor that did not change keeps its value, so time when Home Assistant was
 off would be booked as if the battery kept going. Hourly statistics are only
 written while Home Assistant runs, so hours without them are skipped.
+
+Hourly means are a floor, not an exact replay: a signed power sensor that
+charges and discharges inside one hour averages towards zero.
 """
 
 from __future__ import annotations
