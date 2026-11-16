@@ -350,3 +350,23 @@ def test_price_units_in_subunits_and_per_mwh() -> None:
     assert price("120", "EUR/MWh") == pytest.approx(0.12)
     assert price("2.1", "SEK/kWh") == pytest.approx(2.1)
     assert price("0.3", "GBP/kWh") == pytest.approx(0.3)
+
+
+async def test_backfill_reads_only_what_the_profit_needs(hass: HomeAssistant, freezer) -> None:
+    from unittest.mock import AsyncMock, patch
+
+    freezer.move_to("2026-09-26 10:00:00+02:00")
+    hass.config.components.add("recorder")
+    load = AsyncMock(return_value=({}, None))
+    with patch("custom_components.battery_roi.backfill.async_load", load):
+        hass.states.async_set("sensor.ecoflow_power", "0", {"unit_of_measurement": "W"})
+        hass.states.async_set("sensor.tariff", "12", {"unit_of_measurement": "ct/kWh"})
+        result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+        await hass.config_entries.flow.async_configure(
+            result["flow_id"], _nest({**INPUT, "install_date": "2026-09-01"})
+        )
+        await hass.async_block_till_done(wait_background_tasks=True)
+
+    assert load.call_args.args[1] == ["sensor.ecoflow_power", "sensor.tariff"]
+    hub = hass.config_entries.async_entries(DOMAIN)[0].runtime_data
+    assert hub.acc.totals.backfilled_from == "2026-09-01"

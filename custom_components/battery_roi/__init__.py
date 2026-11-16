@@ -56,6 +56,8 @@ _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [Platform.BUTTON, Platform.SENSOR]
 TICK = timedelta(seconds=30)
+# Charge power first: backfill reads from its statistics when Home Assistant ran.
+_PROFIT_KEYS = (CONF_CHARGE_POWER, CONF_DISCHARGE_POWER, CONF_PRICE, CONF_FEED_IN_PRICE, CONF_GRID_POWER)
 # Samples keep postponing a delayed save, so also save on a fixed beat
 # in case Home Assistant stops without a clean shutdown.
 SAVE_EVERY = timedelta(minutes=5)
@@ -171,13 +173,12 @@ class BatteryRoiHub:
             # Tied to the entry so an unload (options change) cancels it.
             self.entry.async_create_background_task(self.hass, self._async_backfill(install), f"{DOMAIN} backfill")
 
+    def _entities(self, *keys: str) -> list[str]:
+        return [self.config[k] for k in keys if self.config.get(k)]
+
     @property
     def _watched(self) -> list[str]:
-        keys = (
-            CONF_CHARGE_POWER, CONF_DISCHARGE_POWER, CONF_PRICE, CONF_FEED_IN_PRICE,
-            CONF_GRID_POWER, CONF_SOLAR_POWER, CONF_SOC,
-        )
-        return [self.config[k] for k in keys if self.config.get(k)]
+        return self._entities(*_PROFIT_KEYS, CONF_SOLAR_POWER, CONF_SOC)
 
     async def _async_backfill(self, install: str) -> None:
         """Replace the totals with a replay of the recorded history since the install date."""
@@ -185,7 +186,8 @@ class BatteryRoiHub:
         end = dt_util.utcnow()
         before = self.acc
         try:
-            points, running = await backfill.async_load(self.hass, self._watched, start, end)
+            # Only what the profit depends on; solar and SoC are for the card.
+            points, running = await backfill.async_load(self.hass, self._entities(*_PROFIT_KEYS), start, end)
             acc, first = await self.hass.async_add_executor_job(
                 backfill.replay, points, start, end, lambda get, at: self._build(get, at)[0], running
             )
